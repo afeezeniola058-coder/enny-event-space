@@ -1,0 +1,229 @@
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Users, MapPin, Star, Search, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
+
+interface Hall {
+  id: string;
+  name: string;
+  description: string | null;
+  capacity: number;
+  price_per_hour: number;
+  image_url: string | null;
+  amenities: string[] | null;
+}
+
+const sampleHalls: Hall[] = [
+  {
+    id: "1",
+    name: "Grand Ballroom",
+    description: "An elegant ballroom perfect for large celebrations and corporate events.",
+    capacity: 500,
+    price_per_hour: 150000,
+    image_url: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800",
+    amenities: ["Air Conditioning", "Stage", "Sound System", "Lighting", "Parking"],
+  },
+  {
+    id: "2",
+    name: "Garden Pavilion",
+    description: "A beautiful outdoor space with lush gardens for intimate gatherings.",
+    capacity: 150,
+    price_per_hour: 75000,
+    image_url: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=800",
+    amenities: ["Garden View", "Tent Available", "Natural Lighting", "Parking"],
+  },
+  {
+    id: "3",
+    name: "Crystal Hall",
+    description: "A modern venue with crystal chandeliers and contemporary design.",
+    capacity: 300,
+    price_per_hour: 120000,
+    image_url: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?q=80&w=800",
+    amenities: ["Chandeliers", "AC", "DJ Booth", "VIP Lounge", "Parking"],
+  },
+  {
+    id: "4",
+    name: "Rooftop Terrace",
+    description: "Stunning city views with open-air luxury for exclusive events.",
+    capacity: 100,
+    price_per_hour: 100000,
+    image_url: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800",
+    amenities: ["City View", "Bar Area", "Lounge Seating", "Heaters"],
+  },
+];
+
+const Halls = () => {
+  const [halls, setHalls] = useState<Hall[]>(sampleHalls);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHalls = async () => {
+      const { data, error } = await supabase.from("halls").select("*");
+      if (!error && data && data.length > 0) {
+        setHalls(data as Hall[]);
+      }
+      setIsLoading(false);
+    };
+    fetchHalls();
+  }, []);
+
+  const filteredHalls = halls.filter(
+    (hall) =>
+      hall.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      hall.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <main className="pt-24 pb-16">
+        {/* Header */}
+        <section className="bg-gradient-hero py-16">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center max-w-3xl mx-auto"
+            >
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
+                Discover Perfect
+                <span className="text-gradient-gold block">Venues</span>
+              </h1>
+              <p className="text-muted-foreground font-body text-lg mb-8">
+                From grand ballrooms to intimate garden settings, find the ideal space for your celebration.
+              </p>
+
+              {/* Search */}
+              <div className="flex gap-4 max-w-xl mx-auto">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search venues..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-12 h-12 rounded-xl"
+                  />
+                </div>
+                <Button variant="outline" size="lg" className="rounded-xl">
+                  <Filter className="h-5 w-5" />
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Venues Grid */}
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            {isLoading ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-card rounded-2xl h-96 animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredHalls.map((hall, index) => (
+                  <motion.div
+                    key={hall.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all duration-300 hover-lift"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      <img
+                        src={hall.image_url || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800"}
+                        alt={hall.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                        {formatPrice(hall.price_per_hour)}/hr
+                      </div>
+                    </div>
+
+                    <div className="p-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Star className="h-4 w-4 text-primary fill-primary" />
+                        <span className="text-sm text-muted-foreground">4.9 (120 reviews)</span>
+                      </div>
+
+                      <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                        {hall.name}
+                      </h3>
+
+                      <p className="text-muted-foreground text-sm font-body mb-4 line-clamp-2">
+                        {hall.description}
+                      </p>
+
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4" />
+                          <span>Up to {hall.capacity}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>Lagos</span>
+                        </div>
+                      </div>
+
+                      {hall.amenities && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {hall.amenities.slice(0, 3).map((amenity) => (
+                            <span
+                              key={amenity}
+                              className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full"
+                            >
+                              {amenity}
+                            </span>
+                          ))}
+                          {hall.amenities.length > 3 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{hall.amenities.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <Button variant="gold" className="w-full" asChild>
+                        <Link to={`/book?hall=${hall.id}`}>Book Now</Link>
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {filteredHalls.length === 0 && !isLoading && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground font-body text-lg">
+                  No venues found matching your search.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Halls;
