@@ -11,6 +11,7 @@ import Decorations from "./pages/Decorations";
 import Budget from "./pages/Budget";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +28,11 @@ const App = () => (
           <Route path="/catering" element={<Catering />} />
           <Route path="/decorations" element={<Decorations />} />
           <Route path="/budget" element={<Budget />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

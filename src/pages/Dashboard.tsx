@@ -1,53 +1,57 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, CreditCard, Clock, Plus, LogOut } from "lucide-react";
+import { Calendar, CreditCard, Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, Link } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-      
-      const { data } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
-      setBookings(data || []);
-      setIsLoading(false);
-    };
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) navigate("/auth");
-      else setUser(session.user);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user);
     });
 
-    checkAuth();
-  }, [navigate]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user);
+      }
+    );
 
-  const formatPrice = (price: number) => new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(price);
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ["bookings", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+
+  const formatPrice = (price: number) => 
+    new Intl.NumberFormat("en-NG", { 
+      style: "currency", 
+      currency: "NGN", 
+      minimumFractionDigits: 0 
+    }).format(price);
 
   const stats = [
     { label: "Total Bookings", value: bookings.length, icon: Calendar },
     { label: "Pending", value: bookings.filter(b => b.status === "pending").length, icon: Clock },
     { label: "Completed", value: bookings.filter(b => b.status === "completed").length, icon: CreditCard },
   ];
-
-  if (isLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-primary">Loading...</div></div>;
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,7 +78,11 @@ const Dashboard = () => {
               <h2 className="font-display text-xl font-semibold">Your Bookings</h2>
               <Button variant="gold" asChild><Link to="/halls"><Plus className="h-4 w-4 mr-2" />New Booking</Link></Button>
             </div>
-            {bookings.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-pulse text-primary">Loading bookings...</div>
+              </div>
+            ) : bookings.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">No bookings yet. Start planning your event!</p>
