@@ -53,7 +53,10 @@ const Book = () => {
   const { data: cateringPackages = [], isLoading: cateringLoading } = useCateringPackages();
   const { data: decorationPackages = [], isLoading: decorationsLoading } = useDecorationPackages();
 
-  const preselectedHallId = searchParams.get("hall") || "";
+  const hallQueryParam = searchParams.get("hall") || "";
+  // Validate UUID format before using
+  const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hallQueryParam);
+  const preselectedHallId = isValidUUID ? hallQueryParam : "";
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
