@@ -10,6 +10,7 @@ import Catering from "./pages/Catering";
 import Decorations from "./pages/Decorations";
 import Budget from "./pages/Budget";
 import Dashboard from "./pages/Dashboard";
+import Book from "./pages/Book";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/catering" element={<Catering />} />
           <Route path="/decorations" element={<Decorations />} />
           <Route path="/budget" element={<Budget />} />
+          <Route path="/book" element={<Book />} />
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
