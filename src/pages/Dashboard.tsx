@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, CreditCard, Clock, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,9 @@ import {
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
+  const paymentVerified = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -37,6 +40,52 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Handle payment verification on return from Paystack
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    const reference = searchParams.get("reference") || searchParams.get("trxref");
+
+    if (paymentStatus === "success" && reference && !paymentVerified.current) {
+      paymentVerified.current = true;
+      
+      const verifyPayment = async () => {
+        try {
+          const { data, error } = await supabase.functions.invoke('paystack-verify', {
+            body: { reference },
+          });
+
+          if (error) throw error;
+
+          if (data?.success) {
+            toast({
+              title: "Payment successful!",
+              description: "Your booking has been confirmed.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["bookings"] });
+          } else {
+            toast({
+              title: "Payment verification failed",
+              description: data?.message || "Please contact support if you were charged.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("Payment verification error:", error);
+          toast({
+            title: "Verification error",
+            description: "Could not verify payment. Please contact support.",
+            variant: "destructive",
+          });
+        }
+
+        // Clean up URL params
+        setSearchParams({});
+      };
+
+      verifyPayment();
+    }
+  }, [searchParams, setSearchParams, queryClient]);
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ["bookings", user?.id],

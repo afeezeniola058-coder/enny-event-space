@@ -148,7 +148,16 @@ const Book = () => {
     try {
       const totalAmount = calculateTotal();
 
-      const { error } = await supabase.from("bookings").insert({
+      // Get user email for payment
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userEmail = sessionData?.session?.user?.email;
+
+      if (!userEmail) {
+        throw new Error("Could not retrieve user email");
+      }
+
+      // Create booking first
+      const { data: bookingData, error } = await supabase.from("bookings").insert({
         user_id: user.id,
         event_name: data.eventName,
         event_date: format(data.eventDate, "yyyy-MM-dd"),
@@ -162,21 +171,32 @@ const Book = () => {
         total_amount: totalAmount,
         status: "pending",
         payment_status: "pending",
-      });
+      }).select().single();
 
       if (error) throw error;
 
-      toast({
-        title: "Booking submitted!",
-        description: "Your booking request has been submitted successfully.",
+      // Initialize Paystack payment
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('paystack-initialize', {
+        body: {
+          bookingId: bookingData.id,
+          email: userEmail,
+          amount: totalAmount,
+        },
       });
 
-      navigate("/dashboard");
+      if (paymentError) throw paymentError;
+
+      if (paymentData?.authorization_url) {
+        // Redirect to Paystack checkout
+        window.location.href = paymentData.authorization_url;
+      } else {
+        throw new Error("Failed to get payment URL");
+      }
     } catch (error) {
       console.error("Booking error:", error);
       toast({
         title: "Booking failed",
-        description: "There was an error submitting your booking. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error processing your booking. Please try again.",
         variant: "destructive",
       });
     } finally {
