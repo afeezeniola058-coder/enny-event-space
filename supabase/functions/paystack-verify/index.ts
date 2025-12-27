@@ -19,16 +19,44 @@ serve(async (req) => {
       throw new Error('Payment service not configured');
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Authenticate the user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create client with user's auth token to verify identity
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { reference } = await req.json();
     
-    console.log('Verifying payment for reference:', reference);
+    console.log('Verifying payment for reference:', reference, 'user:', user.id);
 
     if (!reference) {
       throw new Error('Payment reference is required');
     }
 
     // Verify transaction with Paystack
-    const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+    const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${paystackSecretKey}`,
@@ -42,22 +70,57 @@ serve(async (req) => {
       throw new Error(paystackData.message || 'Failed to verify payment');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const bookingId = paystackData.data.metadata?.booking_id;
+    const paymentUserId = paystackData.data.metadata?.user_id;
+
+    // Verify the authenticated user owns this payment/booking
+    if (paymentUserId && paymentUserId !== user.id) {
+      console.error('User does not own this payment');
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Also verify via booking ownership
+    if (bookingId) {
+      const { data: booking, error: bookingError } = await supabaseAuth
+        .from('bookings')
+        .select('user_id')
+        .eq('id', bookingId)
+        .single();
+
+      if (bookingError || !booking) {
+        console.error('Booking not found:', bookingError);
+        return new Response(
+          JSON.stringify({ error: 'Booking not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (booking.user_id !== user.id) {
+        console.error('User does not own this booking');
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Use service role to update booking status (after ownership verified)
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
 
     // Update booking status based on payment status
     if (paystackData.data.status === 'success') {
-      const bookingId = paystackData.data.metadata?.booking_id;
-      
       if (bookingId) {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseService
           .from('bookings')
           .update({
             payment_status: 'completed',
             status: 'confirmed',
           })
-          .eq('id', bookingId);
+          .eq('id', bookingId)
+          .eq('user_id', user.id); // Double-check ownership in update
 
         if (updateError) {
           console.error('Failed to update booking status:', updateError);
@@ -71,7 +134,7 @@ serve(async (req) => {
         JSON.stringify({
           success: true,
           message: 'Payment verified successfully',
-          booking_id: paystackData.data.metadata?.booking_id,
+          booking_id: bookingId,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
