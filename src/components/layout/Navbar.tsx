@@ -92,7 +92,7 @@ const Navbar = () => {
                   <Link to="/auth">Sign In</Link>
                 </Button>
                 <Button variant="gold" size="sm" asChild>
-                  <Link to="/auth?mode=signup">
+                  <Link to="/book">
                     <Calendar className="h-4 w-4 mr-2" />
                     Book Now
                   </Link>
@@ -165,7 +165,7 @@ const Navbar = () => {
                     </Button>
                     <Button variant="gold" size="sm" asChild>
                       <Link
-                        to="/auth?mode=signup"
+                        to="/book"
                         onClick={() => setIsOpen(false)}
                       >
                         <Calendar className="h-4 w-4 mr-2" />
