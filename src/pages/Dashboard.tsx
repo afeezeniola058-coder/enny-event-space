@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const paymentVerified = useRef(false);
+  const [payingBookingId, setPayingBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -126,6 +127,45 @@ const Dashboard = () => {
     },
   });
 
+  const handlePayNow = async (booking: any) => {
+    if (!user?.email) {
+      toast({
+        title: "Error",
+        description: "Could not retrieve your email. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPayingBookingId(booking.id);
+
+    try {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('paystack-initialize', {
+        body: {
+          bookingId: booking.id,
+          email: user.email,
+          amount: booking.total_amount,
+        },
+      });
+
+      if (paymentError) throw paymentError;
+
+      if (paymentData?.authorization_url) {
+        window.location.href = paymentData.authorization_url;
+      } else {
+        throw new Error("Failed to get payment URL");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast({
+        title: "Payment failed",
+        description: error instanceof Error ? error.message : "Could not initialize payment. Please try again.",
+        variant: "destructive",
+      });
+      setPayingBookingId(null);
+    }
+  };
+
   const formatPrice = (price: number) => 
     new Intl.NumberFormat("en-NG", { 
       style: "currency", 
@@ -197,46 +237,57 @@ const Dashboard = () => {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="font-semibold text-primary">{formatPrice(booking.total_amount)}</p>
-                        <span className={`text-xs px-2 py-1 rounded-full capitalize ${getStatusStyle(booking.status)}`}>{booking.status}</span>
-                      </div>
-                      {booking.status === "pending" && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to cancel your booking for "{booking.event_name}" on {booking.event_date}? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => cancelBookingMutation.mutate(booking.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Cancel Booking
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
+                                    <p className="font-semibold text-primary">{formatPrice(booking.total_amount)}</p>
+                                        <span className={`text-xs px-2 py-1 rounded-full capitalize ${getStatusStyle(booking.status)}`}>{booking.status}</span>
+                                      </div>
+                                      {booking.status === "pending" && booking.payment_status === "pending" && (
+                                        <Button
+                                          variant="gold"
+                                          size="sm"
+                                          onClick={() => handlePayNow(booking)}
+                                          disabled={payingBookingId === booking.id}
+                                        >
+                                          <CreditCard className="h-4 w-4 mr-2" />
+                                          {payingBookingId === booking.id ? "Processing..." : "Pay Now"}
+                                        </Button>
+                                      )}
+                                      {booking.status === "pending" && (
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                              <X className="h-4 w-4" />
+                                            </Button>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                Are you sure you want to cancel your booking for "{booking.event_name}" on {booking.event_date}? This action cannot be undone.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                                              <AlertDialogAction
+                                                onClick={() => cancelBookingMutation.mutate(booking.id)}
+                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                              >
+                                                Cancel Booking
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </main>
+                      <Footer />
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
-};
+                  );
+                };
 
 export default Dashboard;
