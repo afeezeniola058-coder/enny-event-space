@@ -19,12 +19,72 @@ serve(async (req) => {
       throw new Error('Payment service not configured');
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Authenticate the user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create client with user's auth token to verify identity
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { bookingId, email, amount } = await req.json();
     
-    console.log('Initializing payment for booking:', bookingId, 'amount:', amount);
+    console.log('Initializing payment for booking:', bookingId, 'amount:', amount, 'user:', user.id);
 
     if (!bookingId || !email || !amount) {
       throw new Error('Missing required fields: bookingId, email, or amount');
+    }
+
+    // Verify user owns the booking and amount matches
+    const { data: booking, error: bookingError } = await supabaseAuth
+      .from('bookings')
+      .select('user_id, total_amount')
+      .eq('id', bookingId)
+      .single();
+
+    if (bookingError || !booking) {
+      console.error('Booking not found:', bookingError);
+      return new Response(
+        JSON.stringify({ error: 'Booking not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (booking.user_id !== user.id) {
+      console.error('User does not own this booking');
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify amount matches booking total
+    if (Math.abs(Number(booking.total_amount) - amount) > 0.01) {
+      console.error('Amount mismatch:', booking.total_amount, 'vs', amount);
+      return new Response(
+        JSON.stringify({ error: 'Amount mismatch' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Initialize Paystack transaction
@@ -40,6 +100,7 @@ serve(async (req) => {
         callback_url: `${req.headers.get('origin')}/dashboard?payment=success`,
         metadata: {
           booking_id: bookingId,
+          user_id: user.id,
         },
       }),
     });
@@ -51,15 +112,14 @@ serve(async (req) => {
       throw new Error(paystackData.message || 'Failed to initialize payment');
     }
 
-    // Update booking with payment reference
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Use service role to update payment reference (after ownership verified)
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseService
       .from('bookings')
       .update({ payment_reference: paystackData.data.reference })
-      .eq('id', bookingId);
+      .eq('id', bookingId)
+      .eq('user_id', user.id); // Double-check ownership in update
 
     if (updateError) {
       console.error('Failed to update booking with payment reference:', updateError);
