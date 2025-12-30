@@ -230,7 +230,11 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-4">
                 {bookings.map((booking) => (
-                  <div key={booking.id} className="flex justify-between items-center p-4 bg-secondary/50 rounded-xl">
+                  <Link 
+                    key={booking.id} 
+                    to={`/bookings/${booking.id}`}
+                    className="flex justify-between items-center p-4 bg-secondary/50 rounded-xl hover:bg-secondary/70 transition-colors cursor-pointer"
+                  >
                     <div>
                       <p className="font-medium">{booking.event_name}</p>
                       <p className="text-sm text-muted-foreground">{booking.event_date}</p>
@@ -278,7 +282,7 @@ const Dashboard = () => {
                                         </AlertDialog>
                                       )}
                                     </div>
-                                  </div>
+                                  </Link>
                                 ))}
                               </div>
                             )}
