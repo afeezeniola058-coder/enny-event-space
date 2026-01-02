@@ -116,7 +116,7 @@ serve(async (req) => {
         const { error: updateError } = await supabaseService
           .from('bookings')
           .update({
-            payment_status: 'completed',
+            payment_status: 'paid',
             status: 'confirmed',
           })
           .eq('id', bookingId)
