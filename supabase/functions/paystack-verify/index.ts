@@ -128,6 +128,27 @@ serve(async (req) => {
         }
 
         console.log('Booking updated successfully:', bookingId);
+
+        // Send email notification for confirmed booking
+        try {
+          const notificationResponse = await fetch(`${supabaseUrl}/functions/v1/send-booking-notification`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              booking_id: bookingId,
+              new_status: 'confirmed',
+            }),
+          });
+
+          const notificationResult = await notificationResponse.json();
+          console.log('Email notification result:', notificationResult);
+        } catch (notifError) {
+          console.error('Failed to send email notification:', notifError);
+          // Don't fail the payment verification if email fails
+        }
       }
 
       return new Response(
