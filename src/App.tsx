@@ -12,6 +12,7 @@ import Budget from "./pages/Budget";
 import Dashboard from "./pages/Dashboard";
 import Book from "./pages/Book";
 import BookingDetails from "./pages/BookingDetails";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -39,6 +40,11 @@ const App = () => (
           <Route path="/bookings/:id" element={
             <ProtectedRoute>
               <BookingDetails />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminDashboard />
             </ProtectedRoute>
           } />
           <Route path="*" element={<NotFound />} />

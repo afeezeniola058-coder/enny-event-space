@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Calendar, Sparkles, User, LogOut } from "lucide-react";
+import { Menu, X, Calendar, Sparkles, User, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useAdminRole } from "@/hooks/useAdminRole";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const navigate = useNavigate();
+  const { isAdmin } = useAdminRole();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,6 +77,14 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center gap-4">
             {user ? (
               <>
+                {isAdmin && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/admin">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/dashboard">
                     <User className="h-4 w-4 mr-2" />
@@ -138,6 +148,14 @@ const Navbar = () => {
                 <hr className="border-border" />
                 {user ? (
                   <>
+                    {isAdmin && (
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/admin" onClick={() => setIsOpen(false)}>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin
+                        </Link>
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm" asChild>
                       <Link to="/dashboard" onClick={() => setIsOpen(false)}>
                         <User className="h-4 w-4 mr-2" />
