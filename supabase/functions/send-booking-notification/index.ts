@@ -121,6 +121,17 @@ const handler = async (req: Request): Promise<Response> => {
     const userEmail = profile.email;
     const userName = profile.full_name || "Valued Customer";
 
+    // Build tracking URLs
+    const trackingBaseUrl = `${supabaseUrl}/functions/v1/email-tracking`;
+    const trackingParams = `bid=${booking_id}&email=${encodeURIComponent(userEmail)}`;
+    const openTrackingPixel = `<img src="${trackingBaseUrl}?${trackingParams}&type=open" width="1" height="1" style="display:none;" alt="" />`;
+    
+    // Helper to wrap links with click tracking
+    const wrapLink = (url: string, text: string) => {
+      const trackedUrl = `${trackingBaseUrl}?${trackingParams}&type=click&url=${encodeURIComponent(url)}`;
+      return `<a href="${trackedUrl}" style="color: #10b981; text-decoration: underline;">${text}</a>`;
+    };
+
     // Generate email content based on status
     let subject: string;
     let htmlContent: string;
@@ -200,11 +211,13 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
               </div>
 
-              <p>If you have any questions, please don't hesitate to contact us.</p>
+              <p>If you have any questions, please don't hesitate to ${wrapLink("mailto:support@ennyvenue.com", "contact us")}.</p>
               <p>Thank you for choosing us!</p>
+              <p style="margin-top: 20px;">${wrapLink(`${Deno.env.get("SITE_URL") || "https://ennyvenue.com"}/dashboard`, "View your bookings →")}</p>
             </div>
             <div class="footer">
               <p>This is an automated message. Please do not reply directly to this email.</p>
+              ${openTrackingPixel}
             </div>
           </div>
         </body>
@@ -254,11 +267,12 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
               </div>
 
-              <p>If this cancellation was made in error or you'd like to make a new booking, please visit our website or contact us.</p>
+              <p>If this cancellation was made in error or you'd like to make a new booking, please ${wrapLink(`${Deno.env.get("SITE_URL") || "https://ennyvenue.com"}/book`, "visit our website")} or ${wrapLink("mailto:support@ennyvenue.com", "contact us")}.</p>
               <p>We hope to serve you again in the future!</p>
             </div>
             <div class="footer">
               <p>This is an automated message. Please do not reply directly to this email.</p>
+              ${openTrackingPixel}
             </div>
           </div>
         </body>
@@ -353,6 +367,19 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log("Email sent successfully:", emailResult);
+
+    // Record "sent" event for analytics
+    try {
+      await supabase.from("email_tracking").insert({
+        booking_id,
+        email_type: "booking_notification",
+        recipient_email: sentTo || userEmail,
+        event_type: "sent",
+      });
+      console.log("Recorded sent event for tracking");
+    } catch (trackErr) {
+      console.error("Failed to record sent event:", trackErr);
+    }
 
     return new Response(
       JSON.stringify({
