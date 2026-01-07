@@ -279,31 +279,87 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY not configured");
     }
 
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Enny Venue <onboarding@resend.dev>",
-        to: [userEmail],
-        subject: subject,
-        html: htmlContent,
-      }),
-    });
+    const sendEmail = async (to: string) => {
+      const emailResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "Enny Venue <onboarding@resend.dev>",
+          to: [to],
+          subject,
+          html: htmlContent,
+        }),
+      });
 
-    const emailResult = await emailResponse.json();
+      const emailResult = await emailResponse.json().catch(() => ({}));
 
-    if (!emailResponse.ok) {
-      console.error("Error sending email:", emailResult);
-      throw new Error(emailResult.message || "Failed to send email");
+      if (!emailResponse.ok) {
+        const err: any = new Error((emailResult as any)?.message || "Failed to send email");
+        err.status = emailResponse.status;
+        err.emailResult = emailResult;
+        throw err;
+      }
+
+      return emailResult;
+    };
+
+    let emailResult: any;
+    let resendTestMode = false;
+    let originalTo: string | null = null;
+    let sentTo: string | null = null;
+
+    try {
+      sentTo = userEmail;
+      emailResult = await sendEmail(userEmail);
+    } catch (err: any) {
+      const message = String(err?.message || "");
+      const isResendTestRestriction =
+        err?.status === 403 &&
+        message.includes("You can only send testing emails to your own email address");
+
+      if (isResendTestRestriction) {
+        const match = message.match(/\(([^)]+)\)/);
+        const allowedEmail = match?.[1];
+
+        if (allowedEmail) {
+          resendTestMode = true;
+          originalTo = userEmail;
+          sentTo = allowedEmail;
+
+          console.warn(
+            `Resend test restriction detected. Retrying email to allowed address: ${allowedEmail} (original recipient: ${userEmail})`
+          );
+
+          emailResult = await sendEmail(allowedEmail);
+        } else {
+          console.error("Resend test restriction detected but could not parse allowed email.", err?.emailResult);
+          return new Response(
+            JSON.stringify({
+              success: true,
+              emailSent: false,
+              reason: "resend_test_mode_restriction",
+              message,
+            }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+      } else {
+        console.error("Error sending email:", err?.emailResult ?? err);
+        throw err;
+      }
     }
 
     console.log("Email sent successfully:", emailResult);
 
     return new Response(
-      JSON.stringify({ success: true, emailResponse: emailResult }),
+      JSON.stringify({
+        success: true,
+        emailResponse: emailResult,
+        ...(resendTestMode ? { resendTestMode: true, originalTo, sentTo } : {}),
+      }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
