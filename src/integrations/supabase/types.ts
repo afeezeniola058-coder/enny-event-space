@@ -162,6 +162,50 @@ export type Database = {
         }
         Relationships: []
       }
+      email_tracking: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          email_type: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          link_url: string | null
+          recipient_email: string
+          user_agent: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          email_type?: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          link_url?: string | null
+          recipient_email: string
+          user_agent?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          email_type?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          link_url?: string | null
+          recipient_email?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_tracking_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       halls: {
         Row: {
           amenities: string[] | null
