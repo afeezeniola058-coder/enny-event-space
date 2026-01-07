@@ -19,6 +19,65 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  // Validate authorization
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    console.error("No authorization header provided");
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    );
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  
+  // Check if the token is the service role key (internal calls from other edge functions)
+  const isServiceRoleCall = token === supabaseServiceKey;
+  
+  if (!isServiceRoleCall) {
+    // If not service role, verify it's an authenticated admin user
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    
+    if (userError || !user) {
+      console.error("Invalid token:", userError);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const userId = user.id;
+    
+    // Verify the user has admin role using service role client
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: roleData, error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .single();
+
+    if (roleError || !roleData) {
+      console.error("User is not an admin:", roleError);
+      return new Response(
+        JSON.stringify({ error: "Forbidden - admin access required" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    console.log("Admin user authenticated:", userId);
+  } else {
+    console.log("Service role call authenticated");
+  }
+
   try {
     const { booking_id, new_status }: NotificationRequest = await req.json();
     console.log(`Processing notification for booking: ${booking_id}, status: ${new_status}`);
@@ -28,8 +87,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Create Supabase client with service role for admin access
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch booking details with user profile
