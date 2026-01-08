@@ -293,6 +293,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY not configured");
     }
 
+    // Use a verified sender until your domain is verified in Resend.
+    // You can override this by setting RESEND_FROM (e.g. "Enny Venue <bookings@ennyvenue.com>")
+    const resendFrom = Deno.env.get("RESEND_FROM") || "Enny Venue <onboarding@resend.dev>";
+
     const sendEmail = async (to: string) => {
       const emailResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -301,7 +305,7 @@ const handler = async (req: Request): Promise<Response> => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Enny Venue <bookings@ennyvenue.com>",
+          from: resendFrom,
           to: [to],
           subject,
           html: htmlContent,
