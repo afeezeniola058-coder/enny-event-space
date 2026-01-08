@@ -14,6 +14,33 @@ const TRACKING_PIXEL = new Uint8Array([
   0x00, 0x02, 0x02, 0x44, 0x01, 0x00, 0x3b
 ]);
 
+// Allowed domains for redirect to prevent open redirect attacks
+const ALLOWED_DOMAINS = [
+  'ennyvenue.com',
+  'www.ennyvenue.com',
+];
+
+const isAllowedRedirect = (url: string): boolean => {
+  // Allow mailto links only to the support email
+  if (url.startsWith('mailto:')) {
+    return url.startsWith('mailto:support@ennyvenue.com') || 
+           url.startsWith('mailto:bookings@ennyvenue.com');
+  }
+  
+  try {
+    const urlObj = new URL(url);
+    
+    // Check if the hostname matches allowed domains
+    const hostname = urlObj.hostname.toLowerCase();
+    return ALLOWED_DOMAINS.some(domain => 
+      hostname === domain || hostname.endsWith('.' + domain)
+    );
+  } catch {
+    // Invalid URL
+    return false;
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("email-tracking function called");
 
@@ -74,8 +101,13 @@ const handler = async (req: Request): Promise<Response> => {
     });
   }
 
-  // For click tracking, redirect to the original URL
+  // For click tracking, validate and redirect to the original URL
   if (eventType === "click" && redirectUrl) {
+    if (!isAllowedRedirect(redirectUrl)) {
+      console.error("Blocked redirect to untrusted URL:", redirectUrl);
+      return new Response("Invalid redirect URL", { status: 400, headers: corsHeaders });
+    }
+    
     return new Response(null, {
       status: 302,
       headers: {
