@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+    const paystackSecretKey = Deno.env.get('paystack_secret_code');
     if (!paystackSecretKey) {
-      console.error('PAYSTACK_SECRET_KEY not configured');
+      console.error('paystack_secret_code not configured');
       throw new Error('Payment service not configured');
     }
 
