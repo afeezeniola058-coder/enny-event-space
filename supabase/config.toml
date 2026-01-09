@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.email-tracking]
 verify_jwt = false
+
+[functions.ai-package-recommender]
+verify_jwt = true
