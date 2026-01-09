@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 interface NotificationRequest {
   booking_id: string;
@@ -13,6 +9,8 @@ interface NotificationRequest {
 
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-booking-notification function called");
+  
+  const corsHeaders = getCorsHeaders(req);
 
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
