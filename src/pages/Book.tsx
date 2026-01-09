@@ -23,6 +23,7 @@ import { useHalls } from "@/hooks/useHalls";
 import { useCateringPackages } from "@/hooks/useCateringPackages";
 import { useDecorationPackages } from "@/hooks/useDecorationPackages";
 import { cn } from "@/lib/utils";
+import AIPackageRecommender from "@/components/booking/AIPackageRecommender";
 
 const bookingSchema = z.object({
   eventName: z.string().trim().min(1, "Event name is required").max(100, "Event name too long"),
@@ -457,6 +458,13 @@ const Book = () => {
                         />
                       </CardContent>
                     </Card>
+
+                    {/* AI Package Recommender */}
+                    <AIPackageRecommender
+                      guestCount={guestCount}
+                      onSelectCatering={(id) => form.setValue("cateringPackageId", id)}
+                      onSelectDecoration={(id) => form.setValue("decorationPackageId", id)}
+                    />
 
                     {/* Catering Selection */}
                     <Card>
