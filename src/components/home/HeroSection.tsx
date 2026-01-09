@@ -2,20 +2,16 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Calendar, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ShaderAnimation } from "@/components/ui/shader-animation";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-          className="absolute top-1/4 right-1/4 w-64 h-64 border border-primary/10 rounded-full"
-        />
-      </div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Shader Background */}
+      <ShaderAnimation />
+      
+      {/* Dark overlay for better text readability */}
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
 
       <div className="container mx-auto px-4 pt-24 pb-12 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
