@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/logo.jpg";
 
 const Navbar = () => {
@@ -76,6 +77,7 @@ const Navbar = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-4">
+            <ThemeToggle />
             {user ? (
               <>
                 {isAdmin && (
@@ -146,6 +148,10 @@ const Navbar = () => {
                     {link.label}
                   </Link>
                 ))}
+                <div className="flex items-center justify-between py-2">
+                  <span className="font-body text-sm text-muted-foreground">Theme</span>
+                  <ThemeToggle />
+                </div>
                 <hr className="border-border" />
                 {user ? (
                   <>
