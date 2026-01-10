@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link } from "react-router-dom";
 import { useHalls } from "@/hooks/useHalls";
+import logo from "@/assets/logo.jpg";
 
 const Halls = () => {
   const { data: halls = [], isLoading } = useHalls();
@@ -27,7 +28,18 @@ const Halls = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Faint Background Logo */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `url(${logo})`,
+          backgroundSize: '400px',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'repeat',
+        }}
+      />
+      
       <Navbar />
       
       <main className="pt-24 pb-16">
