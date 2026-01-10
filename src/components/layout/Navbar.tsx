@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Calendar, Sparkles, User, LogOut, Shield } from "lucide-react";
+import { Menu, X, Calendar, User, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import logo from "@/assets/logo.jpg";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +56,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Sparkles className="h-8 w-8 text-primary" />
+            <img src={logo} alt="Logo" className="h-10 w-10 rounded-full object-cover" />
             <span className="font-display text-2xl font-bold text-foreground">
               Eventify
             </span>
