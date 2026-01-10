@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Sparkles, Mail, Phone, MapPin, Instagram, Facebook, Twitter } from "lucide-react";
+import { Mail, Phone, MapPin, Instagram, Facebook, Twitter } from "lucide-react";
+import logo from "@/assets/logo.jpg";
 
 const Footer = () => {
   return (
@@ -9,7 +10,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <Sparkles className="h-8 w-8 text-primary" />
+              <img src={logo} alt="Logo" className="h-10 w-10 rounded-full object-cover" />
               <span className="font-display text-2xl font-bold">Eventify</span>
             </Link>
             <p className="text-background/70 font-body text-sm leading-relaxed">
