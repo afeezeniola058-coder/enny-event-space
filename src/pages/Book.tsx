@@ -157,7 +157,26 @@ const Book = () => {
         throw new Error("Could not retrieve user email");
       }
 
-      // Create booking first
+      // Check if the hall is already booked for this date
+      const { data: existingBooking } = await supabase
+        .from("bookings")
+        .select("id")
+        .eq("hall_id", data.hallId)
+        .eq("event_date", format(data.eventDate, "yyyy-MM-dd"))
+        .neq("status", "cancelled")
+        .maybeSingle();
+
+      if (existingBooking) {
+        toast({
+          title: "Hall not available",
+          description: "This venue is already booked for the selected date. Please choose a different date or venue.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create booking
       const { data: bookingData, error } = await supabase.from("bookings").insert({
         user_id: user.id,
         event_name: data.eventName,
@@ -174,7 +193,19 @@ const Book = () => {
         payment_status: "pending",
       }).select().single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle unique constraint violation
+        if (error.code === "23505") {
+          toast({
+            title: "Hall not available",
+            description: "This venue was just booked by someone else. Please choose a different date or venue.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+        throw error;
+      }
 
       // Initialize Paystack payment
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke('paystack-initialize', {
