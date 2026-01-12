@@ -49,6 +49,7 @@ const Book = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<{ id: string } | null>(null);
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
 
   const { data: halls = [], isLoading: hallsLoading } = useHalls();
   const { data: cateringPackages = [], isLoading: cateringLoading } = useCateringPackages();
@@ -94,6 +95,29 @@ const Book = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch booked dates when hall is selected
+  useEffect(() => {
+    const fetchBookedDates = async () => {
+      if (!selectedHallId) {
+        setBookedDates([]);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("bookings")
+        .select("event_date")
+        .eq("hall_id", selectedHallId)
+        .neq("status", "cancelled");
+
+      if (data) {
+        const dates = data.map((booking) => new Date(booking.event_date + "T00:00:00"));
+        setBookedDates(dates);
+      }
+    };
+
+    fetchBookedDates();
+  }, [selectedHallId]);
 
   // Calculate total
   const calculateTotal = () => {
@@ -332,7 +356,13 @@ const Book = () => {
                                       mode="single"
                                       selected={field.value}
                                       onSelect={field.onChange}
-                                      disabled={(date) => date < new Date()}
+                                      disabled={(date) => {
+                                        if (date < new Date()) return true;
+                                        return bookedDates.some(
+                                          (bookedDate) =>
+                                            bookedDate.toDateString() === date.toDateString()
+                                        );
+                                      }}
                                       initialFocus
                                       className={cn("p-3 pointer-events-auto")}
                                     />
