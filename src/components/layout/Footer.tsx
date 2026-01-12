@@ -33,26 +33,42 @@ const Footer = () => {
           <div>
             <h4 className="font-display text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-3">
-              {["Venues", "Catering", "Decorations", "Budget Tool"].map((item) => (
-                <li key={item}>
+              {[
+                { name: "Venues", path: "/halls" },
+                { name: "Catering", path: "/catering" },
+                { name: "Decorations", path: "/decorations" },
+                { name: "About Us", path: "/about" },
+                { name: "Contact", path: "/contact" },
+                { name: "FAQ", path: "/faq" },
+              ].map((item) => (
+                <li key={item.name}>
                   <Link
-                    to={`/${item.toLowerCase().replace(" ", "-")}`}
+                    to={item.path}
                     className="text-background/70 hover:text-primary transition-colors font-body text-sm"
                   >
-                    {item}
+                    {item.name}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Services */}
+          {/* Legal */}
           <div>
-            <h4 className="font-display text-lg font-semibold mb-4">Our Services</h4>
+            <h4 className="font-display text-lg font-semibold mb-4">Legal</h4>
             <ul className="space-y-3">
-              {["Wedding Planning", "Corporate Events", "Birthday Parties", "Anniversary Celebrations"].map((item) => (
-                <li key={item}>
-                  <span className="text-background/70 font-body text-sm">{item}</span>
+              {[
+                { name: "Terms & Conditions", path: "/terms" },
+                { name: "Privacy Policy", path: "/privacy" },
+                { name: "Refund Policy", path: "/refund-policy" },
+              ].map((item) => (
+                <li key={item.name}>
+                  <Link
+                    to={item.path}
+                    className="text-background/70 hover:text-primary transition-colors font-body text-sm"
+                  >
+                    {item.name}
+                  </Link>
                 </li>
               ))}
             </ul>
