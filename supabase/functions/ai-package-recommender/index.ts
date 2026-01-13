@@ -2,6 +2,45 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
+// Rate limiting configuration
+const RATE_LIMIT_REQUESTS = 10; // Max requests per window
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
+
+// Initialize Deno KV for rate limiting
+const kv = await Deno.openKv();
+
+// Check and update rate limit for a user
+async function checkRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  const key = ["rate_limit", "ai_recommender", userId];
+  const now = Date.now();
+  
+  const entry = await kv.get<{ count: number; windowStart: number }>(key);
+  
+  if (!entry.value || now - entry.value.windowStart > RATE_LIMIT_WINDOW_MS) {
+    // New window - reset counter
+    await kv.set(key, { count: 1, windowStart: now }, { expireIn: RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_REQUESTS - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+  }
+  
+  if (entry.value.count >= RATE_LIMIT_REQUESTS) {
+    // Rate limit exceeded
+    const resetAt = entry.value.windowStart + RATE_LIMIT_WINDOW_MS;
+    return { allowed: false, remaining: 0, resetAt };
+  }
+  
+  // Increment counter
+  const newCount = entry.value.count + 1;
+  await kv.set(key, { count: newCount, windowStart: entry.value.windowStart }, { 
+    expireIn: RATE_LIMIT_WINDOW_MS - (now - entry.value.windowStart) 
+  });
+  
+  return { 
+    allowed: true, 
+    remaining: RATE_LIMIT_REQUESTS - newCount, 
+    resetAt: entry.value.windowStart + RATE_LIMIT_WINDOW_MS 
+  };
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   
@@ -35,7 +74,30 @@ serve(async (req) => {
       );
     }
 
-    console.log(`AI recommendation requested by user ${user.id}`);
+    // Check rate limit for this user
+    const rateLimit = await checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      const retryAfterSeconds = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+      console.log(`Rate limit exceeded for user ${user.id}. Reset in ${retryAfterSeconds}s`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Rate limit exceeded. Please try again later.",
+          retryAfter: retryAfterSeconds
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": String(retryAfterSeconds),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetAt / 1000))
+          } 
+        }
+      );
+    }
+
+    console.log(`AI recommendation requested by user ${user.id} (${rateLimit.remaining} requests remaining)`);
 
     const { eventType, guestCount, budget } = await req.json();
 
