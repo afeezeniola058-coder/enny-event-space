@@ -19,10 +19,13 @@ import {
   FileText,
   CheckCircle,
   XCircle,
-  Loader2
+  Loader2,
+  Star,
+  MessageSquare
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ReviewForm from "@/components/reviews/ReviewForm";
 import type { User } from "@supabase/supabase-js";
 
 const BookingDetails = () => {
@@ -32,6 +35,7 @@ const BookingDetails = () => {
   const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [isPayingNow, setIsPayingNow] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -112,6 +116,22 @@ const BookingDetails = () => {
       return data;
     },
     enabled: !!booking?.decoration_package_id,
+  });
+
+  // Fetch existing review for this booking
+  const { data: existingReview, refetch: refetchReview } = useQuery({
+    queryKey: ["review", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("booking_id", id)
+        .maybeSingle();
+      if (error && error.code !== "PGRST116") throw error;
+      return data;
+    },
+    enabled: !!id && !!user,
   });
 
   const formatPrice = (amount: number) => {
@@ -480,6 +500,69 @@ const BookingDetails = () => {
               </Card>
             )}
           </div>
+
+          {/* Review Section - only for completed bookings */}
+          {booking.status === "completed" && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  Leave a Review
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {existingReview ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-5 w-5 ${
+                              i < existingReview.rating
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-muted-foreground/30"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <Badge variant={existingReview.is_approved ? "default" : "secondary"}>
+                        {existingReview.is_approved ? "Published" : "Pending Approval"}
+                      </Badge>
+                    </div>
+                    {existingReview.title && (
+                      <h4 className="font-semibold">{existingReview.title}</h4>
+                    )}
+                    <p className="text-muted-foreground">"{existingReview.comment}"</p>
+                    <p className="text-xs text-muted-foreground">
+                      Submitted on {new Date(existingReview.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                ) : showReviewForm ? (
+                  <ReviewForm
+                    bookingId={booking.id}
+                    hallId={booking.hall_id || undefined}
+                    onSuccess={() => {
+                      setShowReviewForm(false);
+                      refetchReview();
+                    }}
+                    onCancel={() => setShowReviewForm(false)}
+                  />
+                ) : (
+                  <div className="text-center py-6">
+                    <Star className="h-12 w-12 text-primary/20 mx-auto mb-4" />
+                    <p className="text-muted-foreground mb-4">
+                      Share your experience with us! Your feedback helps us improve.
+                    </p>
+                    <Button variant="gold" onClick={() => setShowReviewForm(true)}>
+                      <Star className="h-4 w-4 mr-2" />
+                      Write a Review
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Timestamps */}
           <div className="mt-8 text-center text-sm text-muted-foreground">
