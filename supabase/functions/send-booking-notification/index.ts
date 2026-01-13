@@ -7,6 +7,17 @@ interface NotificationRequest {
   new_status: "confirmed" | "cancelled" | "pending";
 }
 
+// HTML escape function to prevent XSS in emails
+const escapeHtml = (unsafe: string | null | undefined): string => {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-booking-notification function called");
   
@@ -117,7 +128,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const userEmail = profile.email;
-    const userName = profile.full_name || "Valued Customer";
+    // Escape user-controlled data to prevent XSS in emails
+    const userName = escapeHtml(profile.full_name) || "Valued Customer";
 
     // Build tracking URLs
     const trackingBaseUrl = `${supabaseUrl}/functions/v1/email-tracking`;
@@ -127,7 +139,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Helper to wrap links with click tracking
     const wrapLink = (url: string, text: string) => {
       const trackedUrl = `${trackingBaseUrl}?${trackingParams}&type=click&url=${encodeURIComponent(url)}`;
-      return `<a href="${trackedUrl}" style="color: #10b981; text-decoration: underline;">${text}</a>`;
+      return `<a href="${trackedUrl}" style="color: #10b981; text-decoration: underline;">${escapeHtml(text)}</a>`;
     };
 
     // Generate email content based on status
@@ -141,12 +153,14 @@ const handler = async (req: Request): Promise<Response> => {
       day: "numeric",
     });
 
-    const hallName = booking.halls?.name || "N/A";
-    const cateringName = booking.catering_packages?.name || "None";
-    const decorationName = booking.decoration_packages?.name || "None";
+    // Escape all user-controlled data to prevent XSS in emails
+    const safeEventName = escapeHtml(booking.event_name);
+    const hallName = escapeHtml(booking.halls?.name) || "N/A";
+    const cateringName = escapeHtml(booking.catering_packages?.name) || "None";
+    const decorationName = escapeHtml(booking.decoration_packages?.name) || "None";
 
     if (new_status === "confirmed") {
-      subject = `🎉 Your Booking is Confirmed - ${booking.event_name}`;
+      subject = `🎉 Your Booking is Confirmed - ${safeEventName}`;
       htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -177,7 +191,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <h3 style="margin-top: 0;">Booking Details</h3>
                 <div class="detail-row">
                   <span class="label">Event Name</span>
-                  <span class="value">${booking.event_name}</span>
+                  <span class="value">${safeEventName}</span>
                 </div>
                 <div class="detail-row">
                   <span class="label">Date</span>
@@ -222,7 +236,7 @@ const handler = async (req: Request): Promise<Response> => {
         </html>
       `;
     } else if (new_status === "cancelled") {
-      subject = `Booking Cancelled - ${booking.event_name}`;
+      subject = `Booking Cancelled - ${safeEventName}`;
       htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -253,7 +267,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <h3 style="margin-top: 0;">Cancelled Booking Details</h3>
                 <div class="detail-row">
                   <span class="label">Event Name</span>
-                  <span class="value">${booking.event_name}</span>
+                  <span class="value">${safeEventName}</span>
                 </div>
                 <div class="detail-row">
                   <span class="label">Original Date</span>
