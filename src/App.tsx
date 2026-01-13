@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Halls from "./pages/Halls";
 import Catering from "./pages/Catering";
 import Decorations from "./pages/Decorations";
@@ -36,6 +37,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/halls" element={<Halls />} />
             <Route path="/catering" element={<Catering />} />
             <Route path="/decorations" element={<Decorations />} />
