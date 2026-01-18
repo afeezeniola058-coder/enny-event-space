@@ -4,6 +4,7 @@ import { UtensilsCrossed, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { useCateringPackages } from "@/hooks/useCateringPackages";
 
@@ -28,6 +29,10 @@ const Catering = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Catering"
+        description="Delight your guests with exceptional cuisine. Browse our traditional, international, and luxury catering packages for weddings and corporate events in Nigeria."
+      />
       <Navbar />
 
       <main className="pt-24 pb-16">

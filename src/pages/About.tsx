@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Users, Heart, Award, Target } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import SEO from "@/components/SEO";
 
 const values = [
   {
@@ -52,6 +53,10 @@ const team = [
 const About = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="About Us"
+        description="Learn about Eventify's story, our passionate team, and our commitment to creating unforgettable events since 2015. Discover why thousands trust us with their celebrations."
+      />
       <Navbar />
 
       {/* Hero Section */}

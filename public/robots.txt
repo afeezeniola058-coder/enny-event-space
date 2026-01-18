@@ -1,3 +1,5 @@
+# Eventify Robots.txt
+
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +12,17 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
 User-agent: *
 Allow: /
+
+# Disallow private pages
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /profile
+Disallow: /booking/*
+
+# Sitemap location
+Sitemap: https://enny-event.lovable.app/sitemap.xml
