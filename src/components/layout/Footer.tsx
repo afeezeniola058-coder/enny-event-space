@@ -4,29 +4,41 @@ import logo from "@/assets/logo.jpg";
 
 const Footer = () => {
   return (
-    <footer className="bg-foreground text-background">
+    <footer className="bg-foreground text-background" role="contentinfo" aria-label="Site footer">
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="space-y-4">
-            <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Logo" className="h-10 w-10 rounded-full object-cover" />
+            <Link to="/" className="flex items-center gap-2" aria-label="Eventify - Go to homepage">
+              <img src={logo} alt="Eventify logo" className="h-10 w-10 rounded-full object-cover" />
               <span className="font-display text-2xl font-bold">Eventify</span>
             </Link>
             <p className="text-background/70 font-body text-sm leading-relaxed">
               Creating unforgettable moments with elegance and precision. Your dream event, our expertise.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-background/60 hover:text-primary transition-colors">
-                <Instagram className="h-5 w-5" />
+            <nav aria-label="Social media links" className="flex gap-4">
+              <a 
+                href="#" 
+                className="text-background/60 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-foreground rounded-sm"
+                aria-label="Follow us on Instagram"
+              >
+                <Instagram className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a href="#" className="text-background/60 hover:text-primary transition-colors">
-                <Facebook className="h-5 w-5" />
+              <a 
+                href="#" 
+                className="text-background/60 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-foreground rounded-sm"
+                aria-label="Follow us on Facebook"
+              >
+                <Facebook className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a href="#" className="text-background/60 hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
+              <a 
+                href="#" 
+                className="text-background/60 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-foreground rounded-sm"
+                aria-label="Follow us on Twitter"
+              >
+                <Twitter className="h-5 w-5" aria-hidden="true" />
               </a>
-            </div>
+            </nav>
           </div>
 
           {/* Quick Links */}
@@ -54,9 +66,9 @@ const Footer = () => {
           </div>
 
           {/* Legal */}
-          <div>
+          <nav aria-label="Legal links">
             <h4 className="font-display text-lg font-semibold mb-4">Legal</h4>
-            <ul className="space-y-3">
+            <ul className="space-y-3" role="list">
               {[
                 { name: "Terms & Conditions", path: "/terms" },
                 { name: "Privacy Policy", path: "/privacy" },
@@ -65,14 +77,14 @@ const Footer = () => {
                 <li key={item.name}>
                   <Link
                     to={item.path}
-                    className="text-background/70 hover:text-primary transition-colors font-body text-sm"
+                    className="text-background/70 hover:text-primary transition-colors font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-foreground rounded-sm"
                   >
                     {item.name}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Contact */}
           <div>
