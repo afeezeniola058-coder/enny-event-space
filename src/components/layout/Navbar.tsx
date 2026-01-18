@@ -53,11 +53,20 @@ const Navbar = () => {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled ? "glass shadow-elegant py-3" : "bg-transparent py-5"
       }`}
+      role="navigation"
+      aria-label="Main navigation"
     >
+      {/* Skip to main content link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Skip to main content
+      </a>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Logo" className="h-10 w-10 rounded-full object-cover" />
+          <Link to="/" className="flex items-center gap-2" aria-label="Eventify - Go to homepage">
+            <img src={logo} alt="Eventify logo" className="h-10 w-10 rounded-full object-cover" />
             <span className="font-display text-2xl font-bold text-foreground">
               Eventify
             </span>
@@ -116,14 +125,16 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-2"
+            className="lg:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
             onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
+            aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
           >
             {isOpen ? (
-              <X className="h-6 w-6 text-foreground" />
+              <X className="h-6 w-6 text-foreground" aria-hidden="true" />
             ) : (
-              <Menu className="h-6 w-6 text-foreground" />
+              <Menu className="h-6 w-6 text-foreground" aria-hidden="true" />
             )}
           </button>
         </div>

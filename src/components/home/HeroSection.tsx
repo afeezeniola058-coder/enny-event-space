@@ -6,14 +6,17 @@ import { ShaderAnimation } from "@/components/ui/shader-animation";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section 
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      aria-label="Welcome to Eventify"
+    >
       {/* Shader Background */}
       <ShaderAnimation />
       
       {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" aria-hidden="true" />
 
-      <div className="container mx-auto px-4 pt-24 pb-12 relative z-10">
+      <div className="container mx-auto px-4 pt-24 pb-12 relative z-10" id="main-content">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <motion.div
