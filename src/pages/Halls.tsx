@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { useHalls } from "@/hooks/useHalls";
 import logo from "@/assets/logo.jpg";
@@ -29,6 +30,10 @@ const Halls = () => {
 
   return (
     <div className="min-h-screen bg-background relative">
+      <SEO
+        title="Venues"
+        description="Discover perfect venues for your event. From grand ballrooms to intimate garden settings, find the ideal space for weddings, corporate events, and celebrations in Lagos, Nigeria."
+      />
       {/* Faint Background Logo */}
       <div 
         className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
