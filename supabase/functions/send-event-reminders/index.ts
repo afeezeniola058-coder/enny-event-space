@@ -21,6 +21,17 @@ interface BookingWithProfile {
   profile: { email: string; full_name: string } | null;
 }
 
+// HTML escape function to prevent XSS attacks
+const escapeHtml = (unsafe: string | null | undefined): string => {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -30,6 +41,31 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
+
+    // Verify the request is from cron job with service role key
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("Unauthorized request: No Bearer token provided");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - service role required" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    
+    // Allow either service role key or valid anon key (for cron job)
+    if (token !== supabaseServiceKey) {
+      // Verify the token is a valid anon key by checking if it can create a client
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+      if (token !== anonKey) {
+        console.error("Unauthorized request: Invalid token");
+        return new Response(
+          JSON.stringify({ error: "Unauthorized - invalid credentials" }),
+          { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+    }
 
     if (!resendApiKey) {
       throw new Error("RESEND_API_KEY is not configured");
@@ -45,6 +81,8 @@ const handler = async (req: Request): Promise<Response> => {
     oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
 
     const formatDate = (date: Date) => date.toISOString().split("T")[0];
+
+    console.log("Processing event reminders...");
 
     // Fetch bookings happening tomorrow (one day reminder)
     const { data: tomorrowBookings, error: tomorrowError } = await supabase
@@ -121,7 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
           .single();
 
         if (!profile?.email) {
-          console.log(`No email found for user ${booking.user_id}`);
+          console.log(`No email found for user ${booking.user_id.substring(0, 8)}...`);
           results.oneDayReminders.skipped++;
           continue;
         }
@@ -136,7 +174,7 @@ const handler = async (req: Request): Promise<Response> => {
         await resend.emails.send({
           from: fromEmail,
           to: [profile.email],
-          subject: `Reminder: Your event "${booking.event_name}" is tomorrow!`,
+          subject: `Reminder: Your event "${escapeHtml(booking.event_name)}" is tomorrow!`,
           html: emailHtml,
         });
 
@@ -147,9 +185,9 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         results.oneDayReminders.sent++;
-        console.log(`One day reminder sent for booking ${booking.id}`);
+        console.log(`One day reminder sent for booking ${booking.id.substring(0, 8)}...`);
       } catch (error) {
-        console.error(`Error sending one day reminder for booking ${booking.id}:`, error);
+        console.error(`Error sending one day reminder for booking ${booking.id.substring(0, 8)}...:`, error);
         results.oneDayReminders.errors++;
       }
     }
@@ -178,7 +216,7 @@ const handler = async (req: Request): Promise<Response> => {
           .single();
 
         if (!profile?.email) {
-          console.log(`No email found for user ${booking.user_id}`);
+          console.log(`No email found for user ${booking.user_id.substring(0, 8)}...`);
           results.oneWeekReminders.skipped++;
           continue;
         }
@@ -193,7 +231,7 @@ const handler = async (req: Request): Promise<Response> => {
         await resend.emails.send({
           from: fromEmail,
           to: [profile.email],
-          subject: `Reminder: Your event "${booking.event_name}" is in one week!`,
+          subject: `Reminder: Your event "${escapeHtml(booking.event_name)}" is in one week!`,
           html: emailHtml,
         });
 
@@ -204,9 +242,9 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         results.oneWeekReminders.sent++;
-        console.log(`One week reminder sent for booking ${booking.id}`);
+        console.log(`One week reminder sent for booking ${booking.id.substring(0, 8)}...`);
       } catch (error) {
-        console.error(`Error sending one week reminder for booking ${booking.id}:`, error);
+        console.error(`Error sending one week reminder for booking ${booking.id.substring(0, 8)}...:`, error);
         results.oneWeekReminders.errors++;
       }
     }
@@ -253,6 +291,15 @@ function generateReminderEmail(
     });
   };
 
+  // Escape all user-provided content to prevent XSS
+  const safeName = escapeHtml(profile.full_name) || "there";
+  const safeEventName = escapeHtml(booking.event_name);
+  const safeHallName = booking.hall ? escapeHtml(booking.hall.name) : null;
+  const safeCateringName = booking.catering_package ? escapeHtml(booking.catering_package.name) : null;
+  const safeDecorationName = booking.decoration_package ? escapeHtml(booking.decoration_package.name) : null;
+  const safeTimeframe = escapeHtml(timeframe);
+  const safeFormattedDate = escapeHtml(formattedDate);
+
   return `
     <!DOCTYPE html>
     <html>
@@ -270,7 +317,7 @@ function generateReminderEmail(
               <tr>
                 <td style="background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
                   <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">⏰ Event Reminder</h1>
-                  <p style="color: #E9D5FF; margin: 10px 0 0 0; font-size: 16px;">Your event is ${timeframe}!</p>
+                  <p style="color: #E9D5FF; margin: 10px 0 0 0; font-size: 16px;">Your event is ${safeTimeframe}!</p>
                 </td>
               </tr>
               
@@ -278,10 +325,10 @@ function generateReminderEmail(
               <tr>
                 <td style="padding: 40px 30px;">
                   <p style="font-size: 16px; color: #374151; margin: 0 0 20px 0;">
-                    Hello ${profile.full_name || "there"},
+                    Hello ${safeName},
                   </p>
                   <p style="font-size: 16px; color: #374151; margin: 0 0 30px 0;">
-                    This is a friendly reminder that your event <strong>"${booking.event_name}"</strong> is scheduled for ${timeframe}. Here are your event details:
+                    This is a friendly reminder that your event <strong>"${safeEventName}"</strong> is scheduled for ${safeTimeframe}. Here are your event details:
                   </p>
                   
                   <!-- Event Details Card -->
@@ -292,7 +339,7 @@ function generateReminderEmail(
                           <tr>
                             <td style="padding: 8px 0;">
                               <span style="color: #6B7280; font-size: 14px;">📅 Date</span><br>
-                              <span style="color: #111827; font-size: 16px; font-weight: 500;">${formattedDate}</span>
+                              <span style="color: #111827; font-size: 16px; font-weight: 500;">${safeFormattedDate}</span>
                             </td>
                           </tr>
                           <tr>
@@ -301,11 +348,11 @@ function generateReminderEmail(
                               <span style="color: #111827; font-size: 16px; font-weight: 500;">${formatTime(booking.start_time)} - ${formatTime(booking.end_time)}</span>
                             </td>
                           </tr>
-                          ${booking.hall ? `
+                          ${safeHallName ? `
                           <tr>
                             <td style="padding: 8px 0;">
                               <span style="color: #6B7280; font-size: 14px;">🏛️ Venue</span><br>
-                              <span style="color: #111827; font-size: 16px; font-weight: 500;">${booking.hall.name}</span>
+                              <span style="color: #111827; font-size: 16px; font-weight: 500;">${safeHallName}</span>
                             </td>
                           </tr>
                           ` : ""}
@@ -315,19 +362,19 @@ function generateReminderEmail(
                               <span style="color: #111827; font-size: 16px; font-weight: 500;">${booking.guest_count} people</span>
                             </td>
                           </tr>
-                          ${booking.catering_package ? `
+                          ${safeCateringName ? `
                           <tr>
                             <td style="padding: 8px 0;">
                               <span style="color: #6B7280; font-size: 14px;">🍽️ Catering</span><br>
-                              <span style="color: #111827; font-size: 16px; font-weight: 500;">${booking.catering_package.name}</span>
+                              <span style="color: #111827; font-size: 16px; font-weight: 500;">${safeCateringName}</span>
                             </td>
                           </tr>
                           ` : ""}
-                          ${booking.decoration_package ? `
+                          ${safeDecorationName ? `
                           <tr>
                             <td style="padding: 8px 0;">
                               <span style="color: #6B7280; font-size: 14px;">🎨 Decorations</span><br>
-                              <span style="color: #111827; font-size: 16px; font-weight: 500;">${booking.decoration_package.name}</span>
+                              <span style="color: #111827; font-size: 16px; font-weight: 500;">${safeDecorationName}</span>
                             </td>
                           </tr>
                           ` : ""}
