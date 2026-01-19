@@ -122,7 +122,7 @@ const Terms = () => {
               <a href="mailto:legal@eventify.com" className="text-primary hover:underline">
                 legal@eventify.com
               </a>{" "}
-              or call +234 800 123 4567.
+              or call +234 901 767 5564.
             </p>
           </div>
         </div>

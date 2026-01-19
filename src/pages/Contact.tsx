@@ -27,7 +27,7 @@ const contactInfo = [
   {
     icon: Phone,
     title: "Call Us",
-    details: ["+234 800 123 4567", "+234 901 234 5678"],
+    details: ["+234 901 767 5564"],
   },
   {
     icon: Mail,
@@ -102,7 +102,7 @@ const Contact = () => {
 
   const handleWhatsApp = () => {
     const message = encodeURIComponent("Hello! I'm interested in your event planning services.");
-    window.open(`https://wa.me/2348001234567?text=${message}`, "_blank");
+    window.open(`https://wa.me/2349017675564?text=${message}`, "_blank");
   };
 
   return (
