@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, CalendarDays, Building2, UtensilsCrossed, Sparkles, Mail, BarChart3, Shield, Star, Bell } from 'lucide-react';
+import { RefreshCw, CalendarDays, Building2, UtensilsCrossed, Sparkles, Mail, BarChart3, Shield, Star, Bell, Image } from 'lucide-react';
 import BookingsManagement from '@/components/admin/BookingsManagement';
 import HallsManagement from '@/components/admin/HallsManagement';
 import CateringManagement from '@/components/admin/CateringManagement';
@@ -13,6 +13,7 @@ import { EmailAnalytics } from '@/components/admin/EmailAnalytics';
 import UserRolesManagement from '@/components/admin/UserRolesManagement';
 import ReviewsManagement from '@/components/admin/ReviewsManagement';
 import RemindersManagement from '@/components/admin/RemindersManagement';
+import PastEventsManagement from '@/components/admin/PastEventsManagement';
 
 const AdminDashboard = () => {
   const { isAdmin, loading: roleLoading } = useAdminRole();
@@ -37,7 +38,7 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
         <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 lg:w-auto lg:inline-grid">
             <TabsTrigger value="bookings" className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
               <span className="hidden sm:inline">Bookings</span>
@@ -53,6 +54,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="decorations" className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Decorations</span>
+            </TabsTrigger>
+            <TabsTrigger value="gallery" className="flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              <span className="hidden sm:inline">Gallery</span>
             </TabsTrigger>
             <TabsTrigger value="reviews" className="flex items-center gap-2">
               <Star className="h-4 w-4" />
@@ -90,6 +95,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="decorations">
             <DecorationsManagement />
+          </TabsContent>
+
+          <TabsContent value="gallery">
+            <PastEventsManagement />
           </TabsContent>
 
           <TabsContent value="reviews">

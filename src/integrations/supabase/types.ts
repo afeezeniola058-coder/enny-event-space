@@ -271,6 +271,48 @@ export type Database = {
         }
         Relationships: []
       }
+      past_events: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          event_date: string
+          guest_count: number | null
+          id: string
+          images: string[]
+          is_published: boolean
+          title: string
+          updated_at: string
+          venue: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          event_date: string
+          guest_count?: number | null
+          id?: string
+          images?: string[]
+          is_published?: boolean
+          title: string
+          updated_at?: string
+          venue: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          guest_count?: number | null
+          id?: string
+          images?: string[]
+          is_published?: boolean
+          title?: string
+          updated_at?: string
+          venue?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
