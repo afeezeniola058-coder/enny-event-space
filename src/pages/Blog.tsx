@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users, RefreshCw } from "lucide-react";
+import { format } from "date-fns";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SEO from "@/components/SEO";
@@ -8,115 +9,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { usePastEvents, type PastEvent } from "@/hooks/usePastEvents";
 
-interface PastEvent {
-  id: string;
-  title: string;
-  date: string;
-  venue: string;
-  guestCount: number;
-  category: string;
-  description: string;
-  images: string[];
-}
-
-const pastEvents: PastEvent[] = [
-  {
-    id: "1",
-    title: "Adeyemi & Folake Wedding",
-    date: "January 15, 2026",
-    venue: "Grand Ballroom",
-    guestCount: 350,
-    category: "Wedding",
-    description: "A beautiful traditional Nigerian wedding celebration with elegant gold and white decorations.",
-    images: [
-      "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
-      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800",
-      "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800",
-    ],
-  },
-  {
-    id: "2",
-    title: "TechVenture Corporate Summit",
-    date: "December 8, 2025",
-    venue: "Executive Conference Hall",
-    guestCount: 200,
-    category: "Corporate",
-    description: "Annual tech conference featuring keynote speakers and networking sessions.",
-    images: [
-      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
-      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800",
-      "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800",
-    ],
-  },
-  {
-    id: "3",
-    title: "Princess Chioma's Sweet 16",
-    date: "November 22, 2025",
-    venue: "Garden Pavilion",
-    guestCount: 150,
-    category: "Birthday",
-    description: "A magical pink and gold themed celebration for a special 16th birthday.",
-    images: [
-      "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800",
-      "https://images.unsplash.com/photo-1464349153735-7db50ed83c84?w=800",
-      "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800",
-    ],
-  },
-  {
-    id: "4",
-    title: "Okonkwo Family Reunion",
-    date: "October 5, 2025",
-    venue: "Outdoor Terrace",
-    guestCount: 250,
-    category: "Family Event",
-    description: "A joyful gathering celebrating three generations of the Okonkwo family.",
-    images: [
-      "https://images.unsplash.com/photo-1529543544277-750e9ce698f8?w=800",
-      "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800",
-      "https://images.unsplash.com/photo-1496024840928-4c417adf211d?w=800",
-    ],
-  },
-  {
-    id: "5",
-    title: "Lagos Business Awards Gala",
-    date: "September 18, 2025",
-    venue: "Crystal Hall",
-    guestCount: 400,
-    category: "Gala",
-    description: "An elegant black-tie event honoring outstanding business achievements.",
-    images: [
-      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800",
-      "https://images.unsplash.com/photo-1478147427282-58a87a120781?w=800",
-      "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800",
-    ],
-  },
-  {
-    id: "6",
-    title: "Baby Dedication Ceremony",
-    date: "August 30, 2025",
-    venue: "Intimate Lounge",
-    guestCount: 80,
-    category: "Religious",
-    description: "A heartwarming ceremony welcoming a new blessing to the family.",
-    images: [
-      "https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=800",
-      "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800",
-      "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=800",
-    ],
-  },
-];
-
-const categories = ["All", "Wedding", "Corporate", "Birthday", "Family Event", "Gala", "Religious"];
+const categories = ["All", "Wedding", "Corporate", "Birthday", "Family Event", "Gala", "Religious", "Other"];
 
 const Blog = () => {
+  const { data: events, isLoading } = usePastEvents();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedEvent, setSelectedEvent] = useState<PastEvent | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const filteredEvents = selectedCategory === "All" 
-    ? pastEvents 
-    : pastEvents.filter(event => event.category === selectedCategory);
+    ? events 
+    : events?.filter(event => event.category === selectedCategory);
 
   return (
     <>
@@ -167,60 +72,76 @@ const Blog = () => {
 
           {/* Events Grid */}
           <section className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEvents.map((event, index) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card 
-                    className="overflow-hidden cursor-pointer group hover:shadow-elegant transition-all duration-300"
-                    onClick={() => {
-                      setSelectedEvent(event);
-                      setSelectedImageIndex(0);
-                    }}
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredEvents && filteredEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredEvents.map((event, index) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
                   >
-                    <div className="relative">
-                      <AspectRatio ratio={4/3}>
-                        <img
-                          src={event.images[0]}
-                          alt={event.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </AspectRatio>
-                      <div className="absolute top-3 left-3">
-                        <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
-                          {event.category}
-                        </Badge>
+                    <Card 
+                      className="overflow-hidden cursor-pointer group hover:shadow-elegant transition-all duration-300"
+                      onClick={() => {
+                        setSelectedEvent(event);
+                        setSelectedImageIndex(0);
+                      }}
+                    >
+                      <div className="relative">
+                        <AspectRatio ratio={4/3}>
+                          <img
+                            src={event.images[0]}
+                            alt={event.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </AspectRatio>
+                        <div className="absolute top-3 left-3">
+                          <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
+                            {event.category}
+                          </Badge>
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                          <p className="text-white text-sm flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(event.event_date), "MMMM d, yyyy")}
+                          </p>
+                        </div>
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                        <p className="text-white text-sm flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {event.date}
-                        </p>
-                      </div>
-                    </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-display text-lg font-semibold text-foreground mb-2 line-clamp-1">
-                        {event.title}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {event.venue}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {event.guestCount} guests
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-display text-lg font-semibold text-foreground mb-2 line-clamp-1">
+                          {event.title}
+                        </h3>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {event.venue}
+                          </span>
+                          {event.guest_count && (
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              {event.guest_count} guests
+                            </span>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">
+                  {selectedCategory === "All" 
+                    ? "No events to display yet. Check back soon!"
+                    : `No ${selectedCategory} events found.`}
+                </p>
+              </div>
+            )}
           </section>
         </main>
 
@@ -243,25 +164,27 @@ const Blog = () => {
                 </div>
                 
                 {/* Thumbnail Strip */}
-                <div className="flex gap-2 p-4 bg-muted/50 overflow-x-auto">
-                  {selectedEvent.images.map((image, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedImageIndex(idx)}
-                      className={`flex-shrink-0 w-20 h-14 rounded-md overflow-hidden border-2 transition-all ${
-                        selectedImageIndex === idx 
-                          ? "border-primary" 
-                          : "border-transparent opacity-60 hover:opacity-100"
-                      }`}
-                    >
-                      <img
-                        src={image}
-                        alt={`Thumbnail ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
+                {selectedEvent.images.length > 1 && (
+                  <div className="flex gap-2 p-4 bg-muted/50 overflow-x-auto">
+                    {selectedEvent.images.map((image, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={`flex-shrink-0 w-20 h-14 rounded-md overflow-hidden border-2 transition-all ${
+                          selectedImageIndex === idx 
+                            ? "border-primary" 
+                            : "border-transparent opacity-60 hover:opacity-100"
+                        }`}
+                      >
+                        <img
+                          src={image}
+                          alt={`Thumbnail ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {/* Event Details */}
                 <div className="p-6">
@@ -269,20 +192,24 @@ const Blog = () => {
                   <h2 className="font-display text-2xl font-bold text-foreground mb-2">
                     {selectedEvent.title}
                   </h2>
-                  <p className="text-muted-foreground mb-4">{selectedEvent.description}</p>
+                  {selectedEvent.description && (
+                    <p className="text-muted-foreground mb-4">{selectedEvent.description}</p>
+                  )}
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {selectedEvent.date}
+                      {format(new Date(selectedEvent.event_date), "MMMM d, yyyy")}
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
                       {selectedEvent.venue}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      {selectedEvent.guestCount} guests
-                    </span>
+                    {selectedEvent.guest_count && (
+                      <span className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        {selectedEvent.guest_count} guests
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
