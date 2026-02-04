@@ -22,6 +22,7 @@ import Privacy from "./pages/Privacy";
 import RefundPolicy from "./pages/RefundPolicy";
 import Profile from "./pages/Profile";
 import FAQ from "./pages/FAQ";
+import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/refund-policy" element={<RefundPolicy />} />
             <Route path="/faq" element={<FAQ />} />
+            <Route path="/blog" element={<Blog />} />
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />

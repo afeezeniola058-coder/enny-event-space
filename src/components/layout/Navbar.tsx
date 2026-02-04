@@ -43,6 +43,7 @@ const Navbar = () => {
     { href: "/halls", label: "Venues" },
     { href: "/catering", label: "Catering" },
     { href: "/decorations", label: "Decorations" },
+    { href: "/blog", label: "Gallery" },
     { href: "/budget", label: "Budget Tool" },
   ];
 
