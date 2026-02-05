@@ -5,6 +5,7 @@ import ServicesSection from "@/components/home/ServicesSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import CTASection from "@/components/home/CTASection";
+import PastEventsCarousel from "@/components/home/PastEventsCarousel";
 
 const Index = () => {
   return (
@@ -12,6 +13,7 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
+        <PastEventsCarousel />
         <ServicesSection />
         <FeaturesSection />
         <TestimonialsSection />
