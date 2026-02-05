@@ -70,6 +70,19 @@ const PastEventsCarousel = () => {
     }),
   };
 
+  const imageVariants = {
+    initial: {
+      scale: 1,
+    },
+    animate: {
+      scale: 1.1,
+      transition: {
+        duration: 6,
+        ease: "easeOut" as const,
+      },
+    },
+  };
+
   return (
     <section className="py-20 bg-muted/30 overflow-hidden">
       <div className="container mx-auto px-4">
@@ -108,10 +121,14 @@ const PastEventsCarousel = () => {
                 }}
                 className="absolute inset-0"
               >
-                <img
+                <motion.img
                   src={currentImage}
                   alt={currentEvent.title}
                   className="w-full h-full object-cover"
+                  variants={imageVariants}
+                  initial="initial"
+                  animate="animate"
+                  key={`img-${currentIndex}`}
                 />
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
