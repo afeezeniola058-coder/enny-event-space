@@ -3,11 +3,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Calendar, Users, DollarSign, Clock, RefreshCw } from 'lucide-react';
+import { Calendar, Users, DollarSign, Clock, RefreshCw, CheckSquare, XSquare, CheckCircle } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
@@ -16,6 +28,10 @@ type PaymentStatus = Database['public']['Enums']['payment_status'];
 const BookingsManagement = () => {
   const queryClient = useQueryClient();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedBookings, setSelectedBookings] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<BookingStatus | null>(null);
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
@@ -82,6 +98,78 @@ const BookingsManagement = () => {
     updateStatusMutation.mutate({ bookingId, status: newStatus, sendEmail });
   };
 
+  const toggleBookingSelection = (bookingId: string) => {
+    const newSelected = new Set(selectedBookings);
+    if (newSelected.has(bookingId)) {
+      newSelected.delete(bookingId);
+    } else {
+      newSelected.add(bookingId);
+    }
+    setSelectedBookings(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (!bookings) return;
+    if (selectedBookings.size === bookings.length) {
+      setSelectedBookings(new Set());
+    } else {
+      setSelectedBookings(new Set(bookings.map(b => b.id)));
+    }
+  };
+
+  const handleBulkAction = (status: BookingStatus) => {
+    if (selectedBookings.size === 0) {
+      toast.error('Please select at least one booking');
+      return;
+    }
+    setBulkAction(status);
+    setShowBulkConfirm(true);
+  };
+
+  const executeBulkAction = async () => {
+    if (!bulkAction || selectedBookings.size === 0) return;
+    
+    setIsBulkUpdating(true);
+    const bookingIds = Array.from(selectedBookings);
+    const sendEmail = bulkAction === 'confirmed' || bulkAction === 'cancelled';
+    
+    try {
+      // Update all selected bookings
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: bulkAction })
+        .in('id', bookingIds);
+
+      if (error) throw error;
+
+      // Send emails for confirmed/cancelled status changes
+      if (sendEmail) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Send emails in parallel
+          await Promise.allSettled(
+            bookingIds.map(bookingId =>
+              supabase.functions.invoke('send-booking-notification', {
+                body: { booking_id: bookingId, new_status: bulkAction },
+              })
+            )
+          );
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      toast.success(`${bookingIds.length} booking(s) updated to ${bulkAction}`);
+      setSelectedBookings(new Set());
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error('Failed to update bookings: ' + errorMessage);
+    } finally {
+      setIsBulkUpdating(false);
+      setShowBulkConfirm(false);
+      setBulkAction(null);
+    }
+  };
+
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
@@ -116,6 +204,9 @@ const BookingsManagement = () => {
     confirmed: bookings?.filter(b => b.status === 'confirmed').length || 0,
     totalRevenue: bookings?.filter(b => b.payment_status === 'paid').reduce((sum, b) => sum + Number(b.total_amount), 0) || 0,
   };
+
+  const isAllSelected = bookings && bookings.length > 0 && selectedBookings.size === bookings.length;
+  const isSomeSelected = selectedBookings.size > 0;
 
   return (
     <div className="space-y-6">
@@ -162,6 +253,55 @@ const BookingsManagement = () => {
         </Card>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {isSomeSelected && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="py-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium">
+                {selectedBookings.size} booking(s) selected
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => handleBulkAction('confirmed')}
+                  disabled={isBulkUpdating}
+                >
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  Confirm All
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBulkAction('completed')}
+                  disabled={isBulkUpdating}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Mark Completed
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleBulkAction('cancelled')}
+                  disabled={isBulkUpdating}
+                >
+                  <XSquare className="h-4 w-4 mr-2" />
+                  Cancel All
+                </Button>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedBookings(new Set())}
+              >
+                Clear Selection
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Bookings Table */}
       <Card>
         <CardHeader>
@@ -177,6 +317,13 @@ const BookingsManagement = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Select all bookings"
+                      />
+                    </TableHead>
                     <TableHead>Event</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Date</TableHead>
@@ -189,7 +336,17 @@ const BookingsManagement = () => {
                 </TableHeader>
                 <TableBody>
                   {bookings.map((booking) => (
-                    <TableRow key={booking.id}>
+                    <TableRow 
+                      key={booking.id}
+                      className={selectedBookings.has(booking.id) ? 'bg-primary/5' : ''}
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedBookings.has(booking.id)}
+                          onCheckedChange={() => toggleBookingSelection(booking.id)}
+                          aria-label={`Select booking ${booking.event_name}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">{booking.event_name}</TableCell>
                       <TableCell>
                         <div className="text-sm">
@@ -229,6 +386,36 @@ const BookingsManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Bulk Action Confirmation Dialog */}
+      <AlertDialog open={showBulkConfirm} onOpenChange={setShowBulkConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Bulk Action</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to change the status of {selectedBookings.size} booking(s) to "{bulkAction}"?
+              {(bulkAction === 'confirmed' || bulkAction === 'cancelled') && (
+                <span className="block mt-2 text-primary font-medium">
+                  Email notifications will be sent to affected customers.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkUpdating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={executeBulkAction} disabled={isBulkUpdating}>
+              {isBulkUpdating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Confirm'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
