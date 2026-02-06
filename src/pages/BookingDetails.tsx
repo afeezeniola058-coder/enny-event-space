@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,11 +21,25 @@ import {
   XCircle,
   Loader2,
   Star,
-  MessageSquare
+  MessageSquare,
+  CalendarClock,
+  Ban
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ReviewForm from "@/components/reviews/ReviewForm";
+import { RescheduleDialog } from "@/components/booking/RescheduleDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { User } from "@supabase/supabase-js";
 
 const BookingDetails = () => {
@@ -36,6 +50,7 @@ const BookingDetails = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isPayingNow, setIsPayingNow] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -132,6 +147,33 @@ const BookingDetails = () => {
       return data;
     },
     enabled: !!id && !!user,
+  });
+
+  // Cancel booking mutation
+  const cancelBookingMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error("No booking ID");
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status: "cancelled" as const })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["booking", id] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      toast({
+        title: "Booking cancelled",
+        description: "Your booking has been successfully cancelled.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to cancel booking.",
+        variant: "destructive",
+      });
+    },
   });
 
   const formatPrice = (amount: number) => {
@@ -564,6 +606,58 @@ const BookingDetails = () => {
             </Card>
           )}
 
+          {/* Action Buttons for pending/confirmed bookings */}
+          {(booking.status === "pending" || booking.status === "confirmed") && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarClock className="h-5 w-5 text-primary" />
+                  Manage Booking
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowRescheduleDialog(true)}
+                  >
+                    <CalendarClock className="h-4 w-4 mr-2" />
+                    Reschedule
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">
+                        <Ban className="h-4 w-4 mr-2" />
+                        Cancel Booking
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to cancel your booking for "{booking.event_name}" on{" "}
+                          {formatDate(booking.event_date)}? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => cancelBookingMutation.mutate()}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {cancelBookingMutation.isPending ? "Cancelling..." : "Cancel Booking"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Need to change the date, time, or venue? Use the reschedule option above.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Timestamps */}
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>Created: {new Date(booking.created_at).toLocaleString()}</p>
@@ -571,6 +665,28 @@ const BookingDetails = () => {
           </div>
         </div>
       </main>
+
+      {/* Reschedule Dialog */}
+      <RescheduleDialog
+        open={showRescheduleDialog}
+        onOpenChange={setShowRescheduleDialog}
+        booking={{
+          id: booking.id,
+          event_date: booking.event_date,
+          start_time: booking.start_time,
+          end_time: booking.end_time,
+          hall_id: booking.hall_id,
+          guest_count: booking.guest_count,
+          total_amount: booking.total_amount,
+          catering_package_id: booking.catering_package_id,
+          decoration_package_id: booking.decoration_package_id,
+        }}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["booking", id] });
+          queryClient.invalidateQueries({ queryKey: ["bookings"] });
+        }}
+      />
+
       <Footer />
     </div>
   );
