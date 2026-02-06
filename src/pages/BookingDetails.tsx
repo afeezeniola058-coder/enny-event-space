@@ -149,10 +149,30 @@ const BookingDetails = () => {
     enabled: !!id && !!user,
   });
 
+  // Check if cancellation is allowed (72 hours before event)
+  const canCancelOrReschedule = (eventDate: string, startTime: string) => {
+    const eventDateTime = new Date(`${eventDate}T${startTime}`);
+    const now = new Date();
+    const hoursUntilEvent = (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return hoursUntilEvent >= 72;
+  };
+
+  const getHoursUntilEvent = (eventDate: string, startTime: string) => {
+    const eventDateTime = new Date(`${eventDate}T${startTime}`);
+    const now = new Date();
+    return Math.max(0, Math.floor((eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)));
+  };
+
+  const isCancellationAllowed = booking ? canCancelOrReschedule(booking.event_date, booking.start_time) : false;
+  const hoursRemaining = booking ? getHoursUntilEvent(booking.event_date, booking.start_time) : 0;
+
   // Cancel booking mutation
   const cancelBookingMutation = useMutation({
     mutationFn: async () => {
       if (!id) throw new Error("No booking ID");
+      if (!isCancellationAllowed) {
+        throw new Error("Cancellations are not allowed within 72 hours of the event.");
+      }
       const { error } = await supabase
         .from("bookings")
         .update({ status: "cancelled" as const })
@@ -616,17 +636,29 @@ const BookingDetails = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                {!isCancellationAllowed && (
+                  <div className="mb-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                    <p className="text-amber-600 dark:text-amber-400 text-sm font-medium">
+                      ⚠️ Changes not allowed within 72 hours of event
+                    </p>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      Your event is in {hoursRemaining} hours. Cancellations and rescheduling are only permitted 
+                      at least 72 hours before the event. Please contact support if you need assistance.
+                    </p>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-4">
                   <Button
                     variant="outline"
                     onClick={() => setShowRescheduleDialog(true)}
+                    disabled={!isCancellationAllowed}
                   >
                     <CalendarClock className="h-4 w-4 mr-2" />
                     Reschedule
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive">
+                      <Button variant="destructive" disabled={!isCancellationAllowed}>
                         <Ban className="h-4 w-4 mr-2" />
                         Cancel Booking
                       </Button>
@@ -652,7 +684,9 @@ const BookingDetails = () => {
                   </AlertDialog>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">
-                  Need to change the date, time, or venue? Use the reschedule option above.
+                  {isCancellationAllowed 
+                    ? "Need to change the date, time, or venue? Use the reschedule option above."
+                    : "Contact us at support@eventify.com or call +234 901 767 5564 for last-minute changes."}
                 </p>
               </CardContent>
             </Card>

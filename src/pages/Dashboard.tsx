@@ -173,6 +173,14 @@ const Dashboard = () => {
       minimumFractionDigits: 0 
     }).format(price);
 
+  // Check if cancellation is allowed (72 hours before event)
+  const canCancelBooking = (eventDate: string, startTime: string) => {
+    const eventDateTime = new Date(`${eventDate}T${startTime}`);
+    const now = new Date();
+    const hoursUntilEvent = (eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return hoursUntilEvent >= 72;
+  };
+
   const stats = [
     { label: "Total Bookings", value: bookings.length, icon: Calendar },
     { label: "Pending", value: bookings.filter(b => b.status === "pending").length, icon: Clock },
@@ -255,10 +263,15 @@ const Dashboard = () => {
                                           {payingBookingId === booking.id ? "Processing..." : "Pay Now"}
                                         </Button>
                                       )}
-                                      {booking.status === "pending" && (
+                                      {booking.status === "pending" && canCancelBooking(booking.event_date, booking.start_time) && (
                                         <AlertDialog>
                                           <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                            <Button 
+                                              variant="ghost" 
+                                              size="icon" 
+                                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                              onClick={(e) => e.preventDefault()}
+                                            >
                                               <X className="h-4 w-4" />
                                             </Button>
                                           </AlertDialogTrigger>
