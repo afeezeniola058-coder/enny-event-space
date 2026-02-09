@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
@@ -18,12 +19,19 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { Calendar, Users, DollarSign, Clock, RefreshCw, CheckSquare, XSquare, CheckCircle } from 'lucide-react';
+import { format, differenceInHours } from 'date-fns';
+import { Calendar, Users, DollarSign, Clock, RefreshCw, CheckSquare, XSquare, CheckCircle, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
 type PaymentStatus = Database['public']['Enums']['payment_status'];
+
+interface ForceCancel {
+  bookingId: string;
+  eventName: string;
+  eventDate: string;
+  customerName: string;
+}
 
 const BookingsManagement = () => {
   const queryClient = useQueryClient();
@@ -32,6 +40,8 @@ const BookingsManagement = () => {
   const [bulkAction, setBulkAction] = useState<BookingStatus | null>(null);
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [forceCancelTarget, setForceCancelTarget] = useState<ForceCancel | null>(null);
+  const [overrideReason, setOverrideReason] = useState('');
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
@@ -97,6 +107,61 @@ const BookingsManagement = () => {
     setUpdatingId(bookingId);
     updateStatusMutation.mutate({ bookingId, status: newStatus, sendEmail });
   };
+
+  // Check if a booking is within the 72-hour policy window
+  const isWithin72Hours = (eventDate: string, startTime: string) => {
+    const eventDateTime = new Date(`${eventDate}T${startTime}`);
+    const now = new Date();
+    const hours = differenceInHours(eventDateTime, now);
+    return hours >= 0 && hours < 72;
+  };
+
+  const getHoursUntilEvent = (eventDate: string, startTime: string) => {
+    const eventDateTime = new Date(`${eventDate}T${startTime}`);
+    const now = new Date();
+    return Math.max(0, Math.floor((eventDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)));
+  };
+
+  // Force cancel mutation (admin override)
+  const forceCancelMutation = useMutation({
+    mutationFn: async ({ bookingId, reason }: { bookingId: string; reason: string }) => {
+      const adminNote = `[ADMIN OVERRIDE] Cancelled within 72-hour window. Reason: ${reason}`;
+      
+      const { data: existing } = await supabase
+        .from('bookings')
+        .select('notes')
+        .eq('id', bookingId)
+        .single();
+      
+      const updatedNotes = existing?.notes 
+        ? `${existing.notes}\n\n${adminNote}` 
+        : adminNote;
+
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' as const, notes: updatedNotes })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      // Send notification email
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.functions.invoke('send-booking-notification', {
+          body: { booking_id: bookingId, new_status: 'cancelled' },
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      toast.success('Booking force-cancelled successfully');
+      setForceCancelTarget(null);
+      setOverrideReason('');
+    },
+    onError: (error) => {
+      toast.error('Failed to cancel booking: ' + error.message);
+    },
+  });
 
   const toggleBookingSelection = (bookingId: string) => {
     const newSelected = new Set(selectedBookings);
@@ -335,49 +400,81 @@ const BookingsManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bookings.map((booking) => (
-                    <TableRow 
-                      key={booking.id}
-                      className={selectedBookings.has(booking.id) ? 'bg-primary/5' : ''}
-                    >
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedBookings.has(booking.id)}
-                          onCheckedChange={() => toggleBookingSelection(booking.id)}
-                          aria-label={`Select booking ${booking.event_name}`}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{booking.event_name}</TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div>{booking.profile?.full_name || 'N/A'}</div>
-                          <div className="text-muted-foreground">{booking.profile?.email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{format(new Date(booking.event_date), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell>{booking.halls?.name || 'N/A'}</TableCell>
-                      <TableCell>{formatPrice(Number(booking.total_amount))}</TableCell>
-                      <TableCell>{getPaymentBadge(booking.payment_status)}</TableCell>
-                      <TableCell>{getStatusBadge(booking.status)}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={booking.status}
-                          onValueChange={(value: BookingStatus) => handleStatusChange(booking.id, value)}
-                          disabled={updatingId === booking.id}
-                        >
-                          <SelectTrigger className="w-[130px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {bookings.map((booking) => {
+                    const within72h = (booking.status === 'pending' || booking.status === 'confirmed') &&
+                      isWithin72Hours(booking.event_date, booking.start_time);
+                    const hoursLeft = getHoursUntilEvent(booking.event_date, booking.start_time);
+
+                    return (
+                      <TableRow 
+                        key={booking.id}
+                        className={selectedBookings.has(booking.id) ? 'bg-primary/5' : ''}
+                      >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedBookings.has(booking.id)}
+                            onCheckedChange={() => toggleBookingSelection(booking.id)}
+                            aria-label={`Select booking ${booking.event_name}`}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{booking.event_name}</div>
+                          {within72h && (
+                            <Badge variant="outline" className="mt-1 text-xs border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              {hoursLeft}h left — locked
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div>{booking.profile?.full_name || 'N/A'}</div>
+                            <div className="text-muted-foreground">{booking.profile?.email}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{format(new Date(booking.event_date), 'MMM dd, yyyy')}</TableCell>
+                        <TableCell>{booking.halls?.name || 'N/A'}</TableCell>
+                        <TableCell>{formatPrice(Number(booking.total_amount))}</TableCell>
+                        <TableCell>{getPaymentBadge(booking.payment_status)}</TableCell>
+                        <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-2">
+                            <Select
+                              value={booking.status}
+                              onValueChange={(value: BookingStatus) => handleStatusChange(booking.id, value)}
+                              disabled={updatingId === booking.id}
+                            >
+                              <SelectTrigger className="w-[130px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="confirmed">Confirmed</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {within72h && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-[130px] text-xs border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+                                onClick={() => setForceCancelTarget({
+                                  bookingId: booking.id,
+                                  eventName: booking.event_name,
+                                  eventDate: booking.event_date,
+                                  customerName: booking.profile?.full_name || 'Unknown',
+                                })}
+                              >
+                                <ShieldAlert className="h-3 w-3 mr-1" />
+                                Force Cancel
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -411,6 +508,76 @@ const BookingsManagement = () => {
                 </>
               ) : (
                 'Confirm'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Force Cancel Override Dialog */}
+      <AlertDialog open={!!forceCancelTarget} onOpenChange={(open) => { if (!open) { setForceCancelTarget(null); setOverrideReason(''); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-amber-500" />
+              Admin Policy Override
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  You are about to cancel a booking that is within the <strong>72-hour cancellation window</strong>.
+                  The customer cannot cancel this themselves.
+                </p>
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+                  <p className="font-medium text-amber-600 dark:text-amber-400">Booking Details</p>
+                  <p className="mt-1 text-muted-foreground">
+                    <strong>Event:</strong> {forceCancelTarget?.eventName}<br />
+                    <strong>Date:</strong> {forceCancelTarget ? format(new Date(forceCancelTarget.eventDate), 'MMM dd, yyyy') : ''}<br />
+                    <strong>Customer:</strong> {forceCancelTarget?.customerName}
+                  </p>
+                </div>
+                <div>
+                  <label htmlFor="override-reason" className="text-sm font-medium text-foreground">
+                    Reason for override <span className="text-destructive">*</span>
+                  </label>
+                  <Textarea
+                    id="override-reason"
+                    placeholder="e.g. Customer emergency, venue issue, safety concern..."
+                    value={overrideReason}
+                    onChange={(e) => setOverrideReason(e.target.value)}
+                    className="mt-1.5"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={forceCancelMutation.isPending}>
+              Keep Booking
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (forceCancelTarget) {
+                  forceCancelMutation.mutate({
+                    bookingId: forceCancelTarget.bookingId,
+                    reason: overrideReason,
+                  });
+                }
+              }}
+              disabled={!overrideReason.trim() || forceCancelMutation.isPending}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {forceCancelMutation.isPending ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="h-4 w-4 mr-2" />
+                  Force Cancel
+                </>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
