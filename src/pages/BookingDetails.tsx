@@ -29,6 +29,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { RescheduleDialog } from "@/components/booking/RescheduleDialog";
+import RefundTierDisplay from "@/components/booking/RefundTierDisplay";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -647,6 +648,17 @@ const BookingDetails = () => {
                     </p>
                   </div>
                 )}
+
+                {/* Refund Tier Display */}
+                {isCancellationAllowed && (
+                  <div className="mb-6">
+                    <RefundTierDisplay
+                      eventDate={booking.event_date}
+                      totalAmount={booking.total_amount}
+                      formatPrice={formatPrice}
+                    />
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-4">
                   <Button
                     variant="outline"
@@ -663,7 +675,7 @@ const BookingDetails = () => {
                         Cancel Booking
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="max-w-md">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -671,6 +683,12 @@ const BookingDetails = () => {
                           {formatDate(booking.event_date)}? This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
+                      <RefundTierDisplay
+                        eventDate={booking.event_date}
+                        totalAmount={booking.total_amount}
+                        formatPrice={formatPrice}
+                        compact
+                      />
                       <AlertDialogFooter>
                         <AlertDialogCancel>Keep Booking</AlertDialogCancel>
                         <AlertDialogAction
