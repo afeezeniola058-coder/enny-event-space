@@ -2,6 +2,32 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
+// Rate limiting: max 10 payment verifications per user per 15 minutes
+const RATE_LIMIT_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const kv = await Deno.openKv();
+
+async function checkRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  const key = ["rate_limit", "paystack_verify", userId];
+  const now = Date.now();
+  const entry = await kv.get<{ count: number; windowStart: number }>(key);
+
+  if (!entry.value || now - entry.value.windowStart > RATE_LIMIT_WINDOW_MS) {
+    await kv.set(key, { count: 1, windowStart: now }, { expireIn: RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_REQUESTS - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+  }
+
+  if (entry.value.count >= RATE_LIMIT_REQUESTS) {
+    return { allowed: false, remaining: 0, resetAt: entry.value.windowStart + RATE_LIMIT_WINDOW_MS };
+  }
+
+  const newCount = entry.value.count + 1;
+  await kv.set(key, { count: newCount, windowStart: entry.value.windowStart }, {
+    expireIn: RATE_LIMIT_WINDOW_MS - (now - entry.value.windowStart)
+  });
+  return { allowed: true, remaining: RATE_LIMIT_REQUESTS - newCount, resetAt: entry.value.windowStart + RATE_LIMIT_WINDOW_MS };
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   
@@ -42,6 +68,16 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check rate limit
+    const rateLimit = await checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      const retryAfter = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+      return new Response(
+        JSON.stringify({ error: 'Too many verification requests. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(retryAfter) } }
       );
     }
 
