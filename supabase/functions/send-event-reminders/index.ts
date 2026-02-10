@@ -54,17 +54,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     const token = authHeader.replace("Bearer ", "");
     
-    // Allow either service role key or valid anon key (for cron job)
+    // Only allow service role key (for cron jobs and internal calls)
     if (token !== supabaseServiceKey) {
-      // Verify the token is a valid anon key by checking if it can create a client
-      const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-      if (token !== anonKey) {
-        console.error("Unauthorized request: Invalid token");
-        return new Response(
-          JSON.stringify({ error: "Unauthorized - invalid credentials" }),
-          { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
+      console.error("Unauthorized request: Service role required");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - service role required" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     if (!resendApiKey) {
