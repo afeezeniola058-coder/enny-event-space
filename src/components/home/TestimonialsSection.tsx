@@ -10,9 +10,6 @@ interface Review {
   title: string | null;
   comment: string | null;
   created_at: string;
-  profiles: {
-    full_name: string | null;
-  } | null;
   halls: {
     name: string;
   } | null;
@@ -32,7 +29,6 @@ const TestimonialsSection = () => {
           title,
           comment,
           created_at,
-          profiles:user_id (full_name),
           halls:hall_id (name)
         `)
         .eq("is_approved", true)
@@ -144,7 +140,7 @@ const TestimonialsSection = () => {
                 </p>
                 <div className="border-t border-border pt-4">
                   <p className="font-medium text-foreground">
-                    {review.profiles?.full_name || "Happy Customer"}
+                    Happy Customer
                   </p>
                   {review.halls?.name && (
                     <p className="text-xs text-muted-foreground">{review.halls.name}</p>
