@@ -75,7 +75,26 @@ const Decorations = () => {
             {isLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-card rounded-2xl h-96 animate-pulse" />
+                  <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
+                    <div className="aspect-[4/3] bg-muted animate-pulse" />
+                    <div className="p-6 space-y-4">
+                      <div className="h-5 w-3/4 rounded bg-muted animate-pulse" />
+                      <div className="space-y-2">
+                        <div className="h-3 w-full rounded bg-muted animate-pulse" />
+                        <div className="h-3 w-2/3 rounded bg-muted animate-pulse" />
+                      </div>
+                      <div className="h-7 w-32 rounded bg-muted animate-pulse" />
+                      <div className="space-y-2">
+                        {[1, 2, 3].map((j) => (
+                          <div key={j} className="flex items-center gap-2">
+                            <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                            <div className="h-3 w-28 rounded bg-muted animate-pulse" />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="h-10 w-full rounded-lg bg-muted animate-pulse" />
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (

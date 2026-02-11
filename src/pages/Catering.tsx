@@ -80,7 +80,29 @@ const Catering = () => {
             {isLoading ? (
               <div className="grid md:grid-cols-2 gap-8">
                 {[1, 2].map((i) => (
-                  <div key={i} className="bg-card rounded-2xl h-96 animate-pulse" />
+                  <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
+                    <div className="grid md:grid-cols-2">
+                      <div className="aspect-square md:aspect-auto md:min-h-[300px] bg-muted animate-pulse" />
+                      <div className="p-6 space-y-4">
+                        <div className="h-6 w-3/4 rounded bg-muted animate-pulse" />
+                        <div className="space-y-2">
+                          <div className="h-3 w-full rounded bg-muted animate-pulse" />
+                          <div className="h-3 w-2/3 rounded bg-muted animate-pulse" />
+                        </div>
+                        <div className="h-8 w-28 rounded bg-muted animate-pulse" />
+                        <div className="space-y-2">
+                          <div className="h-3 w-20 rounded bg-muted animate-pulse" />
+                          {[1, 2, 3].map((j) => (
+                            <div key={j} className="flex items-center gap-2">
+                              <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                              <div className="h-3 w-24 rounded bg-muted animate-pulse" />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="h-10 w-full rounded-lg bg-muted animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
