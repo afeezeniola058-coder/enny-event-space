@@ -68,7 +68,7 @@ serve(async (req) => {
     }
 
     // Check rate limit
-    const rateLimit = await checkRateLimit(user.id);
+    const rateLimit = checkRateLimit(user.id);
     if (!rateLimit.allowed) {
       const retryAfter = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
       return new Response(
