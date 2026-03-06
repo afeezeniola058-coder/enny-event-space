@@ -2,30 +2,26 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-// Rate limiting: max 5 payment initializations per user per 15 minutes
+// In-memory rate limiting: max 5 payment initializations per user per 15 minutes
 const RATE_LIMIT_REQUESTS = 5;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const kv = await Deno.openKv();
+const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
 
-async function checkRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
-  const key = ["rate_limit", "paystack_init", userId];
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number; resetAt: number } {
   const now = Date.now();
-  const entry = await kv.get<{ count: number; windowStart: number }>(key);
+  const entry = rateLimitMap.get(userId);
 
-  if (!entry.value || now - entry.value.windowStart > RATE_LIMIT_WINDOW_MS) {
-    await kv.set(key, { count: 1, windowStart: now }, { expireIn: RATE_LIMIT_WINDOW_MS });
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(userId, { count: 1, windowStart: now });
     return { allowed: true, remaining: RATE_LIMIT_REQUESTS - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
   }
 
-  if (entry.value.count >= RATE_LIMIT_REQUESTS) {
-    return { allowed: false, remaining: 0, resetAt: entry.value.windowStart + RATE_LIMIT_WINDOW_MS };
+  if (entry.count >= RATE_LIMIT_REQUESTS) {
+    return { allowed: false, remaining: 0, resetAt: entry.windowStart + RATE_LIMIT_WINDOW_MS };
   }
 
-  const newCount = entry.value.count + 1;
-  await kv.set(key, { count: newCount, windowStart: entry.value.windowStart }, {
-    expireIn: RATE_LIMIT_WINDOW_MS - (now - entry.value.windowStart)
-  });
-  return { allowed: true, remaining: RATE_LIMIT_REQUESTS - newCount, resetAt: entry.value.windowStart + RATE_LIMIT_WINDOW_MS };
+  entry.count++;
+  return { allowed: true, remaining: RATE_LIMIT_REQUESTS - entry.count, resetAt: entry.windowStart + RATE_LIMIT_WINDOW_MS };
 }
 
 serve(async (req) => {
