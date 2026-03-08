@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Calendar, User, LogOut, Shield } from "lucide-react";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -90,6 +91,7 @@ const Navbar = () => {
             <ThemeToggle />
             {user ? (
               <>
+                <NotificationBell />
                 {isAdmin && (
                   <Button variant="ghost" size="sm" asChild>
                     <Link to="/admin">
