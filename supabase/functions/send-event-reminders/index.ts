@@ -42,25 +42,52 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
-    // Verify the request is from cron job with service role key
+    // Verify the request is authorized
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       console.error("Unauthorized request: No Bearer token provided");
       return new Response(
-        JSON.stringify({ error: "Unauthorized - service role required" }),
+        JSON.stringify({ error: "Unauthorized - no token provided" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
     const token = authHeader.replace("Bearer ", "");
     
-    // Only allow service role key (for cron jobs and internal calls)
-    if (token !== supabaseServiceKey) {
-      console.error("Unauthorized request: Service role required");
-      return new Response(
-        JSON.stringify({ error: "Unauthorized - service role required" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    // Allow service role key (for cron jobs) OR admin users
+    const isServiceRole = token === supabaseServiceKey;
+    
+    if (!isServiceRole) {
+      // Verify the user is an admin
+      const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      
+      const { data: { user }, error: userError } = await userClient.auth.getUser();
+      if (userError || !user) {
+        console.error("Unauthorized request: Invalid token");
+        return new Response(
+          JSON.stringify({ error: "Unauthorized - invalid token" }),
+          { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      // Check admin role using service role client
+      const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: roleData } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (!roleData) {
+        console.error("Unauthorized request: User is not admin");
+        return new Response(
+          JSON.stringify({ error: "Unauthorized - admin role required" }),
+          { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
     }
 
     if (!resendApiKey) {
