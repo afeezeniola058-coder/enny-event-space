@@ -91,6 +91,7 @@ const Navbar = () => {
             <ThemeToggle />
             {user ? (
               <>
+                <NotificationBell />
                 {isAdmin && (
                   <Button variant="ghost" size="sm" asChild>
                     <Link to="/admin">
