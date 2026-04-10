@@ -67,21 +67,8 @@ export function useNotifications() {
   useEffect(() => {
     fetchNotifications();
 
-    // Subscribe to realtime notifications
-    const channel = supabase
-      .channel("notifications-realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
-        (payload) => {
-          const newNotif = payload.new as Notification;
-          setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
-          if (!newNotif.is_read) {
-            setUnreadCount((prev) => prev + 1);
-          }
-        }
-      )
-      .subscribe();
+    // Poll for new notifications every 30 seconds
+    const pollInterval = setInterval(fetchNotifications, 30000);
 
     // Re-fetch on auth change
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
@@ -89,7 +76,7 @@ export function useNotifications() {
     });
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
       subscription.unsubscribe();
     };
   }, []);
