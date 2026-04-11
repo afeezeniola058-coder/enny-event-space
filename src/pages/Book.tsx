@@ -521,6 +521,14 @@ const Book = () => {
                       </CardContent>
                     </Card>
 
+                    {/* Hall Availability Calendar */}
+                    <HallAvailabilityCalendar
+                      selectedHallId={selectedHallId}
+                      hallName={halls.find((h) => h.id === selectedHallId)?.name}
+                      selectedDate={form.watch("eventDate")}
+                      onDateSelect={(date) => form.setValue("eventDate", date)}
+                    />
+
                     {/* AI Package Recommender */}
                     <AIPackageRecommender
                       guestCount={guestCount}
