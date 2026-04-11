@@ -24,6 +24,7 @@ import { useCateringPackages } from "@/hooks/useCateringPackages";
 import { useDecorationPackages } from "@/hooks/useDecorationPackages";
 import { cn } from "@/lib/utils";
 import AIPackageRecommender from "@/components/booking/AIPackageRecommender";
+import HallAvailabilityCalendar from "@/components/booking/HallAvailabilityCalendar";
 
 const bookingSchema = z.object({
   eventName: z.string().trim().min(1, "Event name is required").max(100, "Event name too long"),
