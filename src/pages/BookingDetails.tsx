@@ -23,8 +23,10 @@ import {
   Star,
   MessageSquare,
   CalendarClock,
-  Ban
+  Ban,
+  Download
 } from "lucide-react";
+import { generateReceiptPDF } from "@/utils/generateReceiptPDF";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ReviewForm from "@/components/reviews/ReviewForm";
@@ -421,6 +423,27 @@ const BookingDetails = () => {
                   </div>
                 )}
                 
+                {/* Download Receipt Button */}
+                {(booking.payment_status === "paid" || booking.status === "completed") && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={() => {
+                      generateReceiptPDF({
+                        booking,
+                        hall: hall ?? null,
+                        catering: cateringPackage ?? null,
+                        decoration: decorationPackage ?? null,
+                        userEmail: user?.email ?? undefined,
+                        userName: user?.user_metadata?.full_name ?? undefined,
+                      });
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Receipt
+                  </Button>
+                )}
+
                 {booking.status === "pending" && booking.payment_status === "pending" && (
                   <Button 
                     variant="gold" 
