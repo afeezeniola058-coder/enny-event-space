@@ -102,8 +102,18 @@ const Halls = () => {
                     className="pl-12 h-12 rounded-xl"
                   />
                 </div>
-                <Button variant="outline" size="lg" className="rounded-xl">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-xl relative"
+                  onClick={() => setFiltersOpen(!filtersOpen)}
+                >
                   <Filter className="h-5 w-5" />
+                  {activeCount > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                      {activeCount}
+                    </Badge>
+                  )}
                 </Button>
               </div>
             </motion.div>
