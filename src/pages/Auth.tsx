@@ -33,6 +33,7 @@ const Auth = () => {
   const [authMode, setAuthMode] = useState<AuthMode>(getInitialMode());
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
