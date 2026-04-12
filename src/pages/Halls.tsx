@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Users, MapPin, Star, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,42 @@ import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { useHalls } from "@/hooks/useHalls";
 import logo from "@/assets/logo.jpg";
+import HallFiltersPanel, {
+  type HallFilters,
+  getDefaultFilters,
+  getActiveFilterCount,
+} from "@/components/halls/HallFilters";
+import { Badge } from "@/components/ui/badge";
 
 const Halls = () => {
   const { data: halls = [], isLoading } = useHalls();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<HallFilters | null>(null);
 
-  const filteredHalls = halls.filter(
-    (hall) =>
-      hall.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      hall.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Initialize filters from data
+  const activeFilters = filters ?? getDefaultFilters(halls);
+  const activeCount = getActiveFilterCount(activeFilters, halls);
+
+  const filteredHalls = useMemo(() => {
+    return halls.filter((hall) => {
+      const matchesSearch =
+        hall.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        hall.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCapacity =
+        hall.capacity >= activeFilters.capacityRange[0] &&
+        hall.capacity <= activeFilters.capacityRange[1];
+      const matchesPrice =
+        hall.price_per_hour >= activeFilters.priceRange[0] &&
+        hall.price_per_hour <= activeFilters.priceRange[1];
+      const matchesAmenities =
+        activeFilters.selectedAmenities.length === 0 ||
+        activeFilters.selectedAmenities.every((a) =>
+          hall.amenities?.includes(a)
+        );
+      return matchesSearch && matchesCapacity && matchesPrice && matchesAmenities;
+    });
+  }, [halls, searchQuery, activeFilters]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-NG", {
@@ -76,16 +102,37 @@ const Halls = () => {
                     className="pl-12 h-12 rounded-xl"
                   />
                 </div>
-                <Button variant="outline" size="lg" className="rounded-xl">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-xl relative"
+                  onClick={() => setFiltersOpen(!filtersOpen)}
+                >
                   <Filter className="h-5 w-5" />
+                  {activeCount > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                      {activeCount}
+                    </Badge>
+                  )}
                 </Button>
               </div>
             </motion.div>
           </div>
         </section>
 
+        {/* Filters Panel */}
+        <section className="container mx-auto px-4 -mt-8 mb-4">
+          <HallFiltersPanel
+            halls={halls}
+            filters={activeFilters}
+            onChange={setFilters}
+            isOpen={filtersOpen}
+            onToggle={() => setFiltersOpen(false)}
+          />
+        </section>
+
         {/* Venues Grid */}
-        <section className="py-16">
+        <section className="py-8">
           <div className="container mx-auto px-4">
             {isLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
