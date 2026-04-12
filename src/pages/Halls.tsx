@@ -120,8 +120,19 @@ const Halls = () => {
           </div>
         </section>
 
+        {/* Filters Panel */}
+        <section className="container mx-auto px-4 -mt-8 mb-4">
+          <HallFiltersPanel
+            halls={halls}
+            filters={activeFilters}
+            onChange={setFilters}
+            isOpen={filtersOpen}
+            onToggle={() => setFiltersOpen(false)}
+          />
+        </section>
+
         {/* Venues Grid */}
-        <section className="py-16">
+        <section className="py-8">
           <div className="container mx-auto px-4">
             {isLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
