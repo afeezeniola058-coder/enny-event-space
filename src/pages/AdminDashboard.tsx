@@ -38,48 +38,50 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
         <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="bookings" className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" />
-              <span className="hidden sm:inline">Bookings</span>
-            </TabsTrigger>
-            <TabsTrigger value="halls" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Halls</span>
-            </TabsTrigger>
-            <TabsTrigger value="catering" className="flex items-center gap-2">
-              <UtensilsCrossed className="h-4 w-4" />
-              <span className="hidden sm:inline">Catering</span>
-            </TabsTrigger>
-            <TabsTrigger value="decorations" className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">Decorations</span>
-            </TabsTrigger>
-            <TabsTrigger value="gallery" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              <span className="hidden sm:inline">Gallery</span>
-            </TabsTrigger>
-            <TabsTrigger value="reviews" className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              <span className="hidden sm:inline">Reviews</span>
-            </TabsTrigger>
-            <TabsTrigger value="reminders" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">Reminders</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              <span className="hidden sm:inline">Email Setup</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 pb-2 scrollbar-thin">
+            <TabsList className="inline-flex w-max gap-1 lg:grid lg:w-full lg:grid-cols-10">
+              <TabsTrigger value="bookings" className="flex items-center gap-2 whitespace-nowrap">
+                <CalendarDays className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Bookings</span>
+              </TabsTrigger>
+              <TabsTrigger value="halls" className="flex items-center gap-2 whitespace-nowrap">
+                <Building2 className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Halls</span>
+              </TabsTrigger>
+              <TabsTrigger value="catering" className="flex items-center gap-2 whitespace-nowrap">
+                <UtensilsCrossed className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Catering</span>
+              </TabsTrigger>
+              <TabsTrigger value="decorations" className="flex items-center gap-2 whitespace-nowrap">
+                <Sparkles className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Decor</span>
+              </TabsTrigger>
+              <TabsTrigger value="gallery" className="flex items-center gap-2 whitespace-nowrap">
+                <Image className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Gallery</span>
+              </TabsTrigger>
+              <TabsTrigger value="reviews" className="flex items-center gap-2 whitespace-nowrap">
+                <Star className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Reviews</span>
+              </TabsTrigger>
+              <TabsTrigger value="reminders" className="flex items-center gap-2 whitespace-nowrap">
+                <Bell className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Reminders</span>
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2 whitespace-nowrap">
+                <Shield className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Users</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2 whitespace-nowrap">
+                <BarChart3 className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Analytics</span>
+              </TabsTrigger>
+              <TabsTrigger value="email" className="flex items-center gap-2 whitespace-nowrap">
+                <Mail className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Email</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="bookings">
             <BookingsManagement />
