@@ -225,6 +225,44 @@ const Profile = () => {
     return profile.email?.charAt(0).toUpperCase() || "U";
   };
 
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to delete account");
+
+      await supabase.auth.signOut();
+      toast({
+        title: "Account deleted",
+        description: "Your account and all associated data have been permanently removed.",
+      });
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete account.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
