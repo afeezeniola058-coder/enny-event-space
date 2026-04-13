@@ -118,24 +118,49 @@ const Navbar = () => {
             {user ? (
               <>
                 <NotificationBell />
-                {isAdmin && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/admin">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin
-                    </Link>
-                  </Button>
-                )}
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/dashboard">
-                    <User className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={avatarUrl ?? undefined} alt="User avatar" />
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                          {user.email?.charAt(0).toUpperCase() ?? "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel className="font-normal">
+                      <p className="text-sm font-medium truncate">{user.email}</p>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="cursor-pointer">
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="cursor-pointer">
+                        <User className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>
