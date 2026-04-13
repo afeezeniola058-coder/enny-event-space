@@ -261,7 +261,6 @@ const Profile = () => {
       setIsDeletingAccount(false);
     }
   };
-  };
 
   if (isLoading) {
     return (
