@@ -504,6 +504,8 @@ const Profile = () => {
               </AlertDialogContent>
             </AlertDialog>
           </motion.div>
+        </div>
+      </section>
 
       <Footer />
     </div>
