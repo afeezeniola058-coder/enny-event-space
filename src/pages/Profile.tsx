@@ -1,12 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, Mail, Phone, Lock, Camera, ArrowLeft, Loader2 } from "lucide-react";
+import { User, Mail, Phone, Lock, Camera, ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/layout/Navbar";
@@ -32,6 +43,7 @@ const Profile = () => {
     confirm: "",
   });
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -211,6 +223,43 @@ const Profile = () => {
         .slice(0, 2);
     }
     return profile.email?.charAt(0).toUpperCase() || "U";
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to delete account");
+
+      await supabase.auth.signOut();
+      toast({
+        title: "Account deleted",
+        description: "Your account and all associated data have been permanently removed.",
+      });
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete account.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingAccount(false);
+    }
   };
 
   if (isLoading) {
@@ -409,6 +458,51 @@ const Profile = () => {
                 {isChangingPassword ? "Updating..." : "Update Password"}
               </Button>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Danger Zone */}
+      <section className="pb-12 px-4">
+        <div className="container mx-auto max-w-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-card rounded-xl border border-destructive/30 p-6"
+          >
+            <h3 className="font-display text-lg font-semibold text-destructive mb-2">
+              Danger Zone
+            </h3>
+            <p className="font-body text-sm text-muted-foreground mb-4">
+              Once you delete your account, all your data including bookings, reviews, and profile information will be permanently removed. This action cannot be undone.
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete your account and remove all your data from our servers. This includes your bookings, reviews, profile, and any uploaded files. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    disabled={isDeletingAccount}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isDeletingAccount ? "Deleting..." : "Yes, delete my account"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </motion.div>
         </div>
       </section>
