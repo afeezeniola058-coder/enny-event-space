@@ -26,8 +26,6 @@ const Navbar = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const navigate = useNavigate();
   const { isAdmin } = useAdminRole();
-  const navigate = useNavigate();
-  const { isAdmin } = useAdminRole();
 
   useEffect(() => {
     const handleScroll = () => {
