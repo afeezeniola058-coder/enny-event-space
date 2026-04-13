@@ -45,6 +45,22 @@ const Navbar = () => {
     });
   }, []);
 
+  // Fetch avatar URL when user changes
+  useEffect(() => {
+    if (!user) {
+      setAvatarUrl(null);
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setAvatarUrl(data?.avatar_url ?? null);
+      });
+  }, [user]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
