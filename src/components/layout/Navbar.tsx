@@ -23,6 +23,9 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const { isAdmin } = useAdminRole();
 
