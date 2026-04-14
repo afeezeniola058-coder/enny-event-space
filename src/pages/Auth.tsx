@@ -143,11 +143,11 @@ const Auth = () => {
             throw error;
           }
         } else {
+          setSignupEmailSent(true);
           toast({
-            title: "Account created!",
-            description: "Welcome to Eventify! You can now start planning your events.",
+            title: "Check your email!",
+            description: "We've sent a verification link to confirm your account.",
           });
-          navigate("/dashboard");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
