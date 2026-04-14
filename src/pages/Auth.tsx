@@ -189,6 +189,7 @@ const Auth = () => {
     setAuthMode(mode);
     setErrors({});
     setResetEmailSent(false);
+    setSignupEmailSent(false);
   };
 
   const getTitle = () => {
