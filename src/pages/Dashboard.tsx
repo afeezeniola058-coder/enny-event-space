@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, CreditCard, Clock, Plus, X } from "lucide-react";
+import UserAnalytics from "@/components/dashboard/UserAnalytics";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -220,14 +221,30 @@ const Dashboard = () => {
             ))}
           </div>
 
+          {/* User Analytics */}
+          <UserAnalytics bookings={bookings} />
+
           <div className="bg-card rounded-2xl p-6 border border-border">
             <div className="flex justify-between items-center mb-6">
               <h2 className="font-display text-xl font-semibold">Your Bookings</h2>
               <Button variant="gold" asChild><Link to="/halls"><Plus className="h-4 w-4 mr-2" />New Booking</Link></Button>
             </div>
             {isLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-pulse text-primary">Loading bookings...</div>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex justify-between items-center p-4 bg-secondary/50 rounded-xl">
+                    <div className="space-y-2">
+                      <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                      <div className="h-3 w-20 bg-muted animate-pulse rounded" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="space-y-2 text-right">
+                        <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                        <div className="h-5 w-16 bg-muted animate-pulse rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : bookings.length === 0 ? (
               <div className="text-center py-12">

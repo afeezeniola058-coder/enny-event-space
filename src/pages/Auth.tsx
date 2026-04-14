@@ -35,6 +35,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [signupEmailSent, setSignupEmailSent] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -143,11 +144,11 @@ const Auth = () => {
             throw error;
           }
         } else {
+          setSignupEmailSent(true);
           toast({
-            title: "Account created!",
-            description: "Welcome to Eventify! You can now start planning your events.",
+            title: "Check your email!",
+            description: "We've sent a verification link to confirm your account.",
           });
-          navigate("/dashboard");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -188,6 +189,7 @@ const Auth = () => {
     setAuthMode(mode);
     setErrors({});
     setResetEmailSent(false);
+    setSignupEmailSent(false);
   };
 
   const getTitle = () => {
@@ -258,7 +260,7 @@ const Auth = () => {
             </p>
           </div>
 
-          {authMode === "forgot-password" && resetEmailSent ? (
+          {(authMode === "forgot-password" && resetEmailSent) || signupEmailSent ? (
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                 <Mail className="h-8 w-8 text-primary" />
@@ -267,8 +269,10 @@ const Auth = () => {
                 Check your email
               </h2>
               <p className="text-muted-foreground font-body text-sm">
-                We've sent a password reset link to <strong>{formData.email}</strong>. 
-                Please check your inbox and follow the instructions.
+                {signupEmailSent
+                  ? <>We've sent a verification link to <strong>{formData.email}</strong>. Please check your inbox and verify your email to get started.</>
+                  : <>We've sent a password reset link to <strong>{formData.email}</strong>. Please check your inbox and follow the instructions.</>
+                }
               </p>
               <Button
                 type="button"
