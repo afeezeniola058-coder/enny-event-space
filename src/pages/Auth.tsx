@@ -268,8 +268,10 @@ const Auth = () => {
                 Check your email
               </h2>
               <p className="text-muted-foreground font-body text-sm">
-                We've sent a password reset link to <strong>{formData.email}</strong>. 
-                Please check your inbox and follow the instructions.
+                {signupEmailSent
+                  ? <>We've sent a verification link to <strong>{formData.email}</strong>. Please check your inbox and verify your email to get started.</>
+                  : <>We've sent a password reset link to <strong>{formData.email}</strong>. Please check your inbox and follow the instructions.</>
+                }
               </p>
               <Button
                 type="button"
