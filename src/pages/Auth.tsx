@@ -259,7 +259,7 @@ const Auth = () => {
             </p>
           </div>
 
-          {authMode === "forgot-password" && resetEmailSent ? (
+          {(authMode === "forgot-password" && resetEmailSent) || signupEmailSent ? (
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                 <Mail className="h-8 w-8 text-primary" />
