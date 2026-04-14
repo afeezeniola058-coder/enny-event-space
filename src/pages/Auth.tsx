@@ -35,6 +35,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [signupEmailSent, setSignupEmailSent] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
