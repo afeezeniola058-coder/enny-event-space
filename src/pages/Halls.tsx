@@ -8,7 +8,7 @@ import Footer from "@/components/layout/Footer";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { useHalls } from "@/hooks/useHalls";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo.png";
 import HallFiltersPanel, {
   type HallFilters,
   getDefaultFilters,
