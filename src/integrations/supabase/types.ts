@@ -19,6 +19,7 @@ export type Database = {
           catering_package_id: string | null
           created_at: string
           decoration_package_id: string | null
+          discount_amount: number
           end_time: string
           event_date: string
           event_name: string
@@ -28,6 +29,7 @@ export type Database = {
           notes: string | null
           payment_reference: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          promo_code_id: string | null
           start_time: string
           status: Database["public"]["Enums"]["booking_status"]
           total_amount: number
@@ -38,6 +40,7 @@ export type Database = {
           catering_package_id?: string | null
           created_at?: string
           decoration_package_id?: string | null
+          discount_amount?: number
           end_time: string
           event_date: string
           event_name: string
@@ -47,6 +50,7 @@ export type Database = {
           notes?: string | null
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          promo_code_id?: string | null
           start_time: string
           status?: Database["public"]["Enums"]["booking_status"]
           total_amount: number
@@ -57,6 +61,7 @@ export type Database = {
           catering_package_id?: string | null
           created_at?: string
           decoration_package_id?: string | null
+          discount_amount?: number
           end_time?: string
           event_date?: string
           event_name?: string
@@ -66,6 +71,7 @@ export type Database = {
           notes?: string | null
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          promo_code_id?: string | null
           start_time?: string
           status?: Database["public"]["Enums"]["booking_status"]
           total_amount?: number
@@ -92,6 +98,13 @@ export type Database = {
             columns: ["hall_id"]
             isOneToOne: false
             referencedRelation: "halls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
             referencedColumns: ["id"]
           },
         ]
@@ -379,6 +392,54 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_discount: number | null
+          updated_at: string
+          usage_limit: number | null
+          used_count: number
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           booking_id: string | null
@@ -454,6 +515,47 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          created_at: string
+          event_date: string
+          guest_count: number | null
+          hall_id: string
+          id: string
+          notes: string | null
+          notified_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          guest_count?: number | null
+          hall_id: string
+          id?: string
+          notes?: string | null
+          notified_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          guest_count?: number | null
+          hall_id?: string
+          id?: string
+          notes?: string | null
+          notified_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_hall_id_fkey"
+            columns: ["hall_id"]
+            isOneToOne: false
+            referencedRelation: "halls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_reviews: {
@@ -507,6 +609,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      discount_type: "percentage" | "fixed"
       payment_status: "pending" | "paid" | "failed" | "refunded"
     }
     CompositeTypes: {
@@ -637,6 +740,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      discount_type: ["percentage", "fixed"],
       payment_status: ["pending", "paid", "failed", "refunded"],
     },
   },
