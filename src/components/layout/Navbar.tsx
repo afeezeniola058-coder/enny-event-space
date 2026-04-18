@@ -18,6 +18,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/logo.png";
+import logoIcon from "@/assets/logo-icon.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -94,7 +95,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2" aria-label="Eventify - Go to homepage">
-            <img src={logo} alt="Eventify logo" className="h-10 w-10 rounded-full object-cover" />
+            <img src={logoIcon} alt="Eventify logo" className="h-10 w-10 object-contain" />
             <span className="font-display text-2xl font-bold text-foreground">
               Eventify
             </span>
