@@ -15,9 +15,9 @@ const formatPrice = (n: number) =>
   new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(n);
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "hsl(var(--chart-3))",
-  confirmed: "hsl(var(--chart-2))",
-  completed: "hsl(var(--chart-1))",
+  pending: "hsl(38 92% 50%)",       // amber
+  confirmed: "hsl(var(--primary))", // brand gold
+  completed: "hsl(142 71% 45%)",    // green
   cancelled: "hsl(var(--destructive))",
 };
 
