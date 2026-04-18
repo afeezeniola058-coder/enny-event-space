@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, CalendarDays, Building2, UtensilsCrossed, Sparkles, Mail, BarChart3, Shield, Star, Bell, Image } from 'lucide-react';
+import { RefreshCw, CalendarDays, Building2, UtensilsCrossed, Sparkles, Mail, BarChart3, Shield, Star, Bell, Image, Tag, LineChart } from 'lucide-react';
 import BookingsManagement from '@/components/admin/BookingsManagement';
 import HallsManagement from '@/components/admin/HallsManagement';
 import CateringManagement from '@/components/admin/CateringManagement';
@@ -14,6 +14,8 @@ import UserRolesManagement from '@/components/admin/UserRolesManagement';
 import ReviewsManagement from '@/components/admin/ReviewsManagement';
 import RemindersManagement from '@/components/admin/RemindersManagement';
 import PastEventsManagement from '@/components/admin/PastEventsManagement';
+import PromoCodesManagement from '@/components/admin/PromoCodesManagement';
+import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 
 const AdminDashboard = () => {
   const { isAdmin, loading: roleLoading } = useAdminRole();
@@ -39,7 +41,7 @@ const AdminDashboard = () => {
 
         <Tabs defaultValue="bookings" className="space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 pb-2 scrollbar-thin">
-            <TabsList className="inline-flex w-max gap-1 lg:grid lg:w-full lg:grid-cols-10">
+            <TabsList className="inline-flex w-max gap-1 lg:grid lg:w-full lg:grid-cols-12">
               <TabsTrigger value="bookings" className="flex items-center gap-2 whitespace-nowrap">
                 <CalendarDays className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Bookings</span>
@@ -68,13 +70,21 @@ const AdminDashboard = () => {
                 <Bell className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Reminders</span>
               </TabsTrigger>
+              <TabsTrigger value="promos" className="flex items-center gap-2 whitespace-nowrap">
+                <Tag className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Promos</span>
+              </TabsTrigger>
               <TabsTrigger value="users" className="flex items-center gap-2 whitespace-nowrap">
                 <Shield className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Users</span>
               </TabsTrigger>
+              <TabsTrigger value="insights" className="flex items-center gap-2 whitespace-nowrap">
+                <LineChart className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Insights</span>
+              </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2 whitespace-nowrap">
                 <BarChart3 className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Analytics</span>
+                <span className="hidden sm:inline">Email Stats</span>
               </TabsTrigger>
               <TabsTrigger value="email" className="flex items-center gap-2 whitespace-nowrap">
                 <Mail className="h-4 w-4 shrink-0" />
@@ -111,8 +121,16 @@ const AdminDashboard = () => {
             <RemindersManagement />
           </TabsContent>
 
+          <TabsContent value="promos">
+            <PromoCodesManagement />
+          </TabsContent>
+
           <TabsContent value="users">
             <UserRolesManagement />
+          </TabsContent>
+
+          <TabsContent value="insights">
+            <AnalyticsDashboard />
           </TabsContent>
 
           <TabsContent value="analytics">
