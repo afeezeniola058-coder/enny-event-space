@@ -25,6 +25,7 @@ import { useDecorationPackages } from "@/hooks/useDecorationPackages";
 import { cn } from "@/lib/utils";
 import AIPackageRecommender from "@/components/booking/AIPackageRecommender";
 import HallAvailabilityCalendar from "@/components/booking/HallAvailabilityCalendar";
+import PromoCodeInput, { AppliedPromo, calculateDiscount } from "@/components/booking/PromoCodeInput";
 
 const bookingSchema = z.object({
   eventName: z.string().trim().min(1, "Event name is required").max(100, "Event name too long"),
@@ -51,6 +52,7 @@ const Book = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
 
   const { data: halls = [], isLoading: hallsLoading } = useHalls();
   const { data: cateringPackages = [], isLoading: cateringLoading } = useCateringPackages();
@@ -120,27 +122,24 @@ const Book = () => {
     fetchBookedDates();
   }, [selectedHallId]);
 
-  // Calculate total
-  const calculateTotal = () => {
+  // Calculate subtotal and total (with promo)
+  const calculateSubtotal = () => {
     let total = 0;
-
     const selectedHall = halls.find((h) => h.id === selectedHallId);
     if (selectedHall && startTime && endTime) {
       const hours = calculateHours(startTime, endTime);
       total += selectedHall.price_per_hour * hours;
     }
-
     const selectedCatering = cateringPackages.find((c) => c.id === selectedCateringId);
-    if (selectedCatering) {
-      total += selectedCatering.price_per_person * (guestCount || 0);
-    }
-
+    if (selectedCatering) total += selectedCatering.price_per_person * (guestCount || 0);
     const selectedDecoration = decorationPackages.find((d) => d.id === selectedDecorationId);
-    if (selectedDecoration) {
-      total += selectedDecoration.price;
-    }
-
+    if (selectedDecoration) total += selectedDecoration.price;
     return total;
+  };
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const discount = appliedPromo ? calculateDiscount(subtotal, appliedPromo) : 0;
+    return Math.max(0, subtotal - discount);
   };
 
   const calculateHours = (start: string, end: string) => {
@@ -214,6 +213,7 @@ const Book = () => {
         decoration_package_id: data.decorationPackageId || null,
         notes: data.notes || null,
         total_amount: totalAmount,
+        promo_code_id: appliedPromo?.id ?? null,
         status: "pending",
         payment_status: "pending",
       }).select().single();
