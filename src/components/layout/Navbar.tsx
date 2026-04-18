@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
