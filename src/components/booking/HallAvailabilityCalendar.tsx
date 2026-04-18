@@ -23,6 +23,8 @@ const HallAvailabilityCalendar = ({
   onDateSelect,
   selectedDate,
 }: HallAvailabilityCalendarProps) => {
+  const [waitlistDate, setWaitlistDate] = useState<Date | null>(null);
+
   // Fetch all non-cancelled bookings for the selected hall
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ["hall-availability", selectedHallId],
@@ -136,14 +138,15 @@ const HallAvailabilityCalendar = ({
           mode="single"
           selected={selectedDate}
           onSelect={(date) => {
-            if (date && !isBooked(date)) {
+            if (!date) return;
+            if (isBooked(date)) {
+              setWaitlistDate(date);
+            } else {
+              setWaitlistDate(null);
               onDateSelect?.(date);
             }
           }}
-          disabled={(date) => {
-            if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
-            return isBooked(date);
-          }}
+          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
           modifiers={{
             booked: (date) => isConfirmed(date),
             pending: (date) => isPending(date),
@@ -171,6 +174,28 @@ const HallAvailabilityCalendar = ({
             day_disabled: "text-muted-foreground/40 hover:bg-transparent",
           }}
         />
+
+        {/* Waitlist offer when user clicks a booked date */}
+        {waitlistDate && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+            <div className="flex items-start gap-2">
+              <BellPlus className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium text-sm">
+                  {format(waitlistDate, "MMM d, yyyy")} is fully booked
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Join the waitlist and we'll notify you immediately if this date opens up.
+                </p>
+              </div>
+            </div>
+            <WaitlistButton
+              hallId={selectedHallId}
+              eventDate={format(waitlistDate, "yyyy-MM-dd")}
+              className="w-full"
+            />
+          </div>
+        )}
 
         {/* Summary stats */}
         <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50">
