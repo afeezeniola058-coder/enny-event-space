@@ -776,8 +776,34 @@ const Book = () => {
                         </div>
                       )}
 
-                      {/* Total */}
+                      {/* Promo Code */}
                       <div className="pt-2">
+                        <PromoCodeInput
+                          subtotal={calculateSubtotal()}
+                          applied={appliedPromo}
+                          onApply={setAppliedPromo}
+                          onRemove={() => setAppliedPromo(null)}
+                        />
+                      </div>
+
+                      {/* Subtotal + Discount + Total */}
+                      <div className="pt-2 space-y-2">
+                        {appliedPromo && (
+                          <>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-muted-foreground">Subtotal</span>
+                              <span className="text-foreground">{formatPrice(calculateSubtotal())}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-muted-foreground">
+                                Discount ({appliedPromo.code})
+                              </span>
+                              <span className="text-primary font-medium">
+                                −{formatPrice(calculateDiscount(calculateSubtotal(), appliedPromo))}
+                              </span>
+                            </div>
+                          </>
+                        )}
                         <div className="flex justify-between items-center">
                           <p className="font-display text-lg text-foreground">Total</p>
                           <p className="font-display text-2xl font-bold text-primary">
