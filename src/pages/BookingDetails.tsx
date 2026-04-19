@@ -32,6 +32,7 @@ import Footer from "@/components/layout/Footer";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { RescheduleDialog } from "@/components/booking/RescheduleDialog";
 import RefundTierDisplay from "@/components/booking/RefundTierDisplay";
+import CalendarExportButton from "@/components/booking/CalendarExportButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -442,6 +443,27 @@ const BookingDetails = () => {
                     <Download className="h-4 w-4 mr-2" />
                     Download Receipt
                   </Button>
+                )}
+
+                {/* Add to Calendar (confirmed bookings only) */}
+                {booking.status === "confirmed" && (
+                  <CalendarExportButton
+                    className="w-full mt-2"
+                    title={booking.event_name}
+                    description={
+                      [
+                        hall ? `Venue: ${hall.name}` : null,
+                        `Guests: ${booking.guest_count}`,
+                        booking.notes ? `Notes: ${booking.notes}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join("\n")
+                    }
+                    location={hall?.name}
+                    eventDate={booking.event_date}
+                    startTime={booking.start_time}
+                    endTime={booking.end_time}
+                  />
                 )}
 
                 {booking.status === "pending" && booking.payment_status === "pending" && (
