@@ -17,6 +17,7 @@ import PastEventsManagement from '@/components/admin/PastEventsManagement';
 import PromoCodesManagement from '@/components/admin/PromoCodesManagement';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import WaitlistManagement from '@/components/admin/WaitlistManagement';
+import BlogManagement from '@/components/admin/BlogManagement';
 
 const AdminDashboard = () => {
   const { isAdmin, loading: roleLoading } = useAdminRole();
