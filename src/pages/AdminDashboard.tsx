@@ -64,6 +64,10 @@ const AdminDashboard = () => {
                 <Image className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Gallery</span>
               </TabsTrigger>
+              <TabsTrigger value="blog" className="flex items-center gap-2 whitespace-nowrap">
+                <Newspaper className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Blog</span>
+              </TabsTrigger>
               <TabsTrigger value="reviews" className="flex items-center gap-2 whitespace-nowrap">
                 <Star className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Reviews</span>
