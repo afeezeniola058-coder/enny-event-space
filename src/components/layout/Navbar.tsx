@@ -71,7 +71,8 @@ const Navbar = () => {
     { href: "/halls", label: "Venues" },
     { href: "/catering", label: "Catering" },
     { href: "/decorations", label: "Decorations" },
-    { href: "/blog", label: "Gallery" },
+    { href: "/gallery", label: "Gallery" },
+    { href: "/blog", label: "Blog" },
     { href: "/budget", label: "Budget Tool" },
   ];
 

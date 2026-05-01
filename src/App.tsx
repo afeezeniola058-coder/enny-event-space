@@ -24,6 +24,8 @@ import RefundPolicy from "./pages/RefundPolicy";
 import Profile from "./pages/Profile";
 import FAQ from "./pages/FAQ";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import Gallery from "./pages/Gallery";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -53,6 +55,8 @@ const App = () => (
             <Route path="/refund-policy" element={<RefundPolicy />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/gallery" element={<Gallery />} />
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
