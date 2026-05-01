@@ -43,7 +43,7 @@ const AdminDashboard = () => {
 
         <Tabs defaultValue="bookings" className="space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 pb-2 scrollbar-thin">
-            <TabsList className="inline-flex w-max gap-1 lg:grid lg:w-full lg:grid-cols-[repeat(13,minmax(0,1fr))]">
+            <TabsList className="inline-flex w-max gap-1 lg:grid lg:w-full lg:grid-cols-[repeat(14,minmax(0,1fr))]">
               <TabsTrigger value="bookings" className="flex items-center gap-2 whitespace-nowrap">
                 <CalendarDays className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Bookings</span>
