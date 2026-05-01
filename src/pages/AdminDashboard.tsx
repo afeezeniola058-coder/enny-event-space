@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, CalendarDays, Building2, UtensilsCrossed, Sparkles, Mail, BarChart3, Shield, Star, Bell, Image, Tag, LineChart } from 'lucide-react';
+import { RefreshCw, CalendarDays, Building2, UtensilsCrossed, Sparkles, Mail, BarChart3, Shield, Star, Bell, Image, Tag, LineChart, Users } from 'lucide-react';
 import BookingsManagement from '@/components/admin/BookingsManagement';
 import HallsManagement from '@/components/admin/HallsManagement';
 import CateringManagement from '@/components/admin/CateringManagement';
