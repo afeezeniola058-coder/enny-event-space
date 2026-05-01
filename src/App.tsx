@@ -24,6 +24,8 @@ import RefundPolicy from "./pages/RefundPolicy";
 import Profile from "./pages/Profile";
 import FAQ from "./pages/FAQ";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import Gallery from "./pages/Gallery";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
