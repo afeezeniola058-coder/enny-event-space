@@ -13,7 +13,7 @@ import { usePastEvents, type PastEvent } from "@/hooks/usePastEvents";
 
 const categories = ["All", "Wedding", "Corporate", "Birthday", "Family Event", "Gala", "Religious", "Other"];
 
-const Blog = () => {
+const Gallery = () => {
   const { data: events, isLoading } = usePastEvents();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedEvent, setSelectedEvent] = useState<PastEvent | null>(null);
