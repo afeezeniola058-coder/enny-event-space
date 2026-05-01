@@ -71,6 +71,10 @@ const AdminDashboard = () => {
                 <Bell className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Reminders</span>
               </TabsTrigger>
+              <TabsTrigger value="waitlist" className="flex items-center gap-2 whitespace-nowrap">
+                <Users className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Waitlist</span>
+              </TabsTrigger>
               <TabsTrigger value="promos" className="flex items-center gap-2 whitespace-nowrap">
                 <Tag className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Promos</span>
