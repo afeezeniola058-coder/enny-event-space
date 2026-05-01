@@ -126,6 +126,10 @@ const AdminDashboard = () => {
             <RemindersManagement />
           </TabsContent>
 
+          <TabsContent value="waitlist">
+            <WaitlistManagement />
+          </TabsContent>
+
           <TabsContent value="promos">
             <PromoCodesManagement />
           </TabsContent>
