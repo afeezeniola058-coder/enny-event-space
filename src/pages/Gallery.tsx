@@ -223,4 +223,4 @@ const Gallery = () => {
   );
 };
 
-export default Blog;
+export default Gallery;
