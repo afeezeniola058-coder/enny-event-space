@@ -123,6 +123,10 @@ const AdminDashboard = () => {
             <PastEventsManagement />
           </TabsContent>
 
+          <TabsContent value="blog">
+            <BlogManagement />
+          </TabsContent>
+
           <TabsContent value="reviews">
             <ReviewsManagement />
           </TabsContent>
