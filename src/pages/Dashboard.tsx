@@ -338,7 +338,7 @@ const Dashboard = () => {
 
           <div className="bg-card rounded-2xl p-6 border border-border">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="font-display text-xl font-semibold">Your Bookings</h2>
+              <h2 className="font-display text-xl font-semibold">Upcoming Bookings</h2>
               <Button variant="gold" asChild><Link to="/halls"><Plus className="h-4 w-4 mr-2" />New Booking</Link></Button>
             </div>
             {isLoading ? (
@@ -358,79 +358,29 @@ const Dashboard = () => {
                   </div>
                 ))}
               </div>
-            ) : bookings.length === 0 ? (
+            ) : upcomingBookings.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No bookings yet. Start planning your event!</p>
+                <p className="text-muted-foreground">No upcoming bookings. Start planning your event!</p>
                 <Button variant="gold" className="mt-4" asChild><Link to="/halls">Browse Venues</Link></Button>
               </div>
             ) : (
               <div className="space-y-4">
-                {bookings.map((booking) => (
-                  <Link 
-                    key={booking.id} 
-                    to={`/bookings/${booking.id}`}
-                    className="flex justify-between items-center p-4 bg-secondary/50 rounded-xl hover:bg-secondary/70 transition-colors cursor-pointer"
-                  >
-                    <div>
-                      <p className="font-medium">{booking.event_name}</p>
-                      <p className="text-sm text-muted-foreground">{booking.event_date}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                                    <p className="font-semibold text-primary">{formatPrice(booking.total_amount)}</p>
-                                        <span className={`text-xs px-2 py-1 rounded-full capitalize ${getStatusStyle(booking.status)}`}>{booking.status}</span>
-                                      </div>
-                                      {booking.status === "pending" && booking.payment_status === "pending" && (
-                                        <Button
-                                          variant="gold"
-                                          size="sm"
-                                          onClick={() => handlePayNow(booking)}
-                                          disabled={payingBookingId === booking.id}
-                                        >
-                                          <CreditCard className="h-4 w-4 mr-2" />
-                                          {payingBookingId === booking.id ? "Processing..." : "Pay Now"}
-                                        </Button>
-                                      )}
-                                      {booking.status === "pending" && canCancelBooking(booking.event_date, booking.start_time) && (
-                                        <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                            <Button 
-                                              variant="ghost" 
-                                              size="icon" 
-                                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                              onClick={(e) => e.preventDefault()}
-                                            >
-                                              <X className="h-4 w-4" />
-                                            </Button>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                              <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-                                              <AlertDialogDescription>
-                                                Are you sure you want to cancel your booking for "{booking.event_name}" on {booking.event_date}? This action cannot be undone.
-                                              </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                              <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-                                              <AlertDialogAction
-                                                onClick={() => cancelBookingMutation.mutate(booking.id)}
-                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                              >
-                                                Cancel Booking
-                                              </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                        </AlertDialog>
-                                      )}
-                                    </div>
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                {upcomingBookings.map(renderBookingRow)}
+              </div>
+            )}
+          </div>
 
-                          <MyWaitlist userId={user?.id} />
+          {pastBookings.length > 0 && (
+            <div className="bg-card rounded-2xl p-6 border border-border mt-6">
+              <h2 className="font-display text-xl font-semibold mb-6">Past & Cancelled</h2>
+              <div className="space-y-4">
+                {pastBookings.map(renderBookingRow)}
+              </div>
+            </div>
+          )}
+
+          <MyWaitlist userId={user?.id} />
                         </div>
                       </main>
                       <Footer />
