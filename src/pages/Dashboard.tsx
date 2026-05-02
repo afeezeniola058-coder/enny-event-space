@@ -96,14 +96,27 @@ const Dashboard = () => {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("bookings")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select(`
+          *,
+          hall:halls(name),
+          catering_package:catering_packages(name),
+          decoration_package:decoration_packages(name)
+        `)
+        .order("event_date", { ascending: true });
       if (error) throw error;
       return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30 * 1000,
   });
+
+  const today = new Date().toISOString().split("T")[0];
+  const upcomingBookings = bookings.filter(
+    (b: any) => b.event_date >= today && b.status !== "cancelled"
+  );
+  const pastBookings = bookings.filter(
+    (b: any) => b.event_date < today || b.status === "cancelled"
+  );
 
   const cancelBookingMutation = useMutation({
     mutationFn: async (bookingId: string) => {
@@ -184,9 +197,9 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { label: "Total Bookings", value: bookings.length, icon: Calendar },
-    { label: "Pending", value: bookings.filter(b => b.status === "pending").length, icon: Clock },
-    { label: "Confirmed", value: bookings.filter(b => b.status === "confirmed").length, icon: CreditCard },
+    { label: "Upcoming", value: upcomingBookings.length, icon: Calendar },
+    { label: "Pending Payment", value: bookings.filter((b: any) => b.payment_status === "pending" && b.status !== "cancelled").length, icon: Clock },
+    { label: "Confirmed", value: bookings.filter((b: any) => b.status === "confirmed").length, icon: CreditCard },
   ];
 
   const getStatusStyle = (status: string) => {
@@ -201,6 +214,104 @@ const Dashboard = () => {
         return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
     }
   };
+
+  const getPaymentStyle = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+      case "refunded":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+      case "failed":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+      default:
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+    }
+  };
+
+  const renderBookingRow = (booking: any) => (
+    <Link
+      key={booking.id}
+      to={`/bookings/${booking.id}`}
+      className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 p-4 bg-secondary/50 rounded-xl hover:bg-secondary/70 transition-colors cursor-pointer"
+    >
+      <div className="min-w-0 flex-1">
+        <p className="font-medium truncate">{booking.event_name}</p>
+        <p className="text-sm text-muted-foreground">
+          {new Date(booking.event_date).toLocaleDateString("en-NG", { weekday: "short", year: "numeric", month: "short", day: "numeric" })}
+          {" · "}
+          {booking.start_time?.slice(0, 5)}–{booking.end_time?.slice(0, 5)}
+        </p>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {booking.hall?.name && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              📍 {booking.hall.name}
+            </span>
+          )}
+          {booking.catering_package?.name && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              🍽 {booking.catering_package.name}
+            </span>
+          )}
+          {booking.decoration_package?.name && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              🎀 {booking.decoration_package.name}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="text-right">
+          <p className="font-semibold text-primary">{formatPrice(booking.total_amount)}</p>
+          <div className="flex flex-wrap gap-1 justify-end mt-1">
+            <span className={`text-xs px-2 py-1 rounded-full capitalize ${getStatusStyle(booking.status)}`}>{booking.status}</span>
+            <span className={`text-xs px-2 py-1 rounded-full capitalize ${getPaymentStyle(booking.payment_status)}`}>{booking.payment_status}</span>
+          </div>
+        </div>
+        {booking.status === "pending" && booking.payment_status === "pending" && (
+          <Button
+            variant="gold"
+            size="sm"
+            onClick={(e) => { e.preventDefault(); handlePayNow(booking); }}
+            disabled={payingBookingId === booking.id}
+          >
+            <CreditCard className="h-4 w-4 mr-2" />
+            {payingBookingId === booking.id ? "Processing..." : "Pay Now"}
+          </Button>
+        )}
+        {booking.status === "pending" && canCancelBooking(booking.event_date, booking.start_time) && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={(e) => e.preventDefault()}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to cancel your booking for "{booking.event_name}" on {booking.event_date}? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => cancelBookingMutation.mutate(booking.id)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Cancel Booking
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
+    </Link>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -227,7 +338,7 @@ const Dashboard = () => {
 
           <div className="bg-card rounded-2xl p-6 border border-border">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="font-display text-xl font-semibold">Your Bookings</h2>
+              <h2 className="font-display text-xl font-semibold">Upcoming Bookings</h2>
               <Button variant="gold" asChild><Link to="/halls"><Plus className="h-4 w-4 mr-2" />New Booking</Link></Button>
             </div>
             {isLoading ? (
@@ -247,79 +358,29 @@ const Dashboard = () => {
                   </div>
                 ))}
               </div>
-            ) : bookings.length === 0 ? (
+            ) : upcomingBookings.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No bookings yet. Start planning your event!</p>
+                <p className="text-muted-foreground">No upcoming bookings. Start planning your event!</p>
                 <Button variant="gold" className="mt-4" asChild><Link to="/halls">Browse Venues</Link></Button>
               </div>
             ) : (
               <div className="space-y-4">
-                {bookings.map((booking) => (
-                  <Link 
-                    key={booking.id} 
-                    to={`/bookings/${booking.id}`}
-                    className="flex justify-between items-center p-4 bg-secondary/50 rounded-xl hover:bg-secondary/70 transition-colors cursor-pointer"
-                  >
-                    <div>
-                      <p className="font-medium">{booking.event_name}</p>
-                      <p className="text-sm text-muted-foreground">{booking.event_date}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                                    <p className="font-semibold text-primary">{formatPrice(booking.total_amount)}</p>
-                                        <span className={`text-xs px-2 py-1 rounded-full capitalize ${getStatusStyle(booking.status)}`}>{booking.status}</span>
-                                      </div>
-                                      {booking.status === "pending" && booking.payment_status === "pending" && (
-                                        <Button
-                                          variant="gold"
-                                          size="sm"
-                                          onClick={() => handlePayNow(booking)}
-                                          disabled={payingBookingId === booking.id}
-                                        >
-                                          <CreditCard className="h-4 w-4 mr-2" />
-                                          {payingBookingId === booking.id ? "Processing..." : "Pay Now"}
-                                        </Button>
-                                      )}
-                                      {booking.status === "pending" && canCancelBooking(booking.event_date, booking.start_time) && (
-                                        <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                            <Button 
-                                              variant="ghost" 
-                                              size="icon" 
-                                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                              onClick={(e) => e.preventDefault()}
-                                            >
-                                              <X className="h-4 w-4" />
-                                            </Button>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                              <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-                                              <AlertDialogDescription>
-                                                Are you sure you want to cancel your booking for "{booking.event_name}" on {booking.event_date}? This action cannot be undone.
-                                              </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                              <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-                                              <AlertDialogAction
-                                                onClick={() => cancelBookingMutation.mutate(booking.id)}
-                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                              >
-                                                Cancel Booking
-                                              </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                        </AlertDialog>
-                                      )}
-                                    </div>
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                {upcomingBookings.map(renderBookingRow)}
+              </div>
+            )}
+          </div>
 
-                          <MyWaitlist userId={user?.id} />
+          {pastBookings.length > 0 && (
+            <div className="bg-card rounded-2xl p-6 border border-border mt-6">
+              <h2 className="font-display text-xl font-semibold mb-6">Past & Cancelled</h2>
+              <div className="space-y-4">
+                {pastBookings.map(renderBookingRow)}
+              </div>
+            </div>
+          )}
+
+          <MyWaitlist userId={user?.id} />
                         </div>
                       </main>
                       <Footer />
