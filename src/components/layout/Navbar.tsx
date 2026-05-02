@@ -63,7 +63,19 @@ const Navbar = () => {
   }, [user]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (err) {
+      console.warn("Sign out error (clearing local session anyway):", err);
+    }
+    // Defensive: clear any lingering supabase auth keys from storage
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {}
+    setUser(null);
+    setAvatarUrl(null);
     navigate("/");
   };
 
