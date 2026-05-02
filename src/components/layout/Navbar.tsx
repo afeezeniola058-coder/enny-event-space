@@ -248,9 +248,16 @@ const Navbar = () => {
                         Dashboard
                       </Link>
                     </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to="/profile" onClick={() => setIsOpen(false)}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Profile
+                      </Link>
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
+                      className="text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
                       onClick={() => {
                         handleSignOut();
                         setIsOpen(false);
