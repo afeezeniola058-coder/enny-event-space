@@ -96,14 +96,27 @@ const Dashboard = () => {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("bookings")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select(`
+          *,
+          hall:halls(name),
+          catering_package:catering_packages(name),
+          decoration_package:decoration_packages(name)
+        `)
+        .order("event_date", { ascending: true });
       if (error) throw error;
       return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30 * 1000,
   });
+
+  const today = new Date().toISOString().split("T")[0];
+  const upcomingBookings = bookings.filter(
+    (b: any) => b.event_date >= today && b.status !== "cancelled"
+  );
+  const pastBookings = bookings.filter(
+    (b: any) => b.event_date < today || b.status === "cancelled"
+  );
 
   const cancelBookingMutation = useMutation({
     mutationFn: async (bookingId: string) => {
