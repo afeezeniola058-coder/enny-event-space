@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import {
   Accordion,
   AccordionContent,
@@ -7,6 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import SEO from "@/components/SEO";
 
 const faqs = [
   {
@@ -105,9 +107,30 @@ const faqs = [
 ];
 
 const FAQ = () => {
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.flatMap((category) =>
+      category.questions.map((q) => ({
+        "@type": "Question",
+        name: q.q,
+        acceptedAnswer: { "@type": "Answer", text: q.a },
+      }))
+    ),
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Frequently Asked Questions"
+        description="Answers about bookings, payments, cancellations, catering, and event day logistics with Eventify."
+        url="/faq"
+      />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+      </Helmet>
       <Navbar />
+
 
       <section className="pt-32 pb-16 px-4 bg-gradient-hero">
         <div className="container mx-auto text-center">

@@ -6,7 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link } from "react-router-dom";
 import { useDecorationPackages } from "@/hooks/useDecorationPackages";
-
+import SEO from "@/components/SEO";
 const Decorations = () => {
   const { data: packages = [], isLoading } = useDecorationPackages();
   const [selectedStyle, setSelectedStyle] = useState<string>("All");
@@ -28,6 +28,11 @@ const Decorations = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Event Decoration Packages — Classic, Modern, Royal"
+        description="Browse bespoke decoration packages by style — Classic, Rustic, Modern, Botanical, Royal, and Minimalist — for weddings and events in Nigeria."
+        url="/decorations"
+      />
       <Navbar />
 
       <main className="pt-24 pb-16">

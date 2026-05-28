@@ -22,7 +22,7 @@ Allow: /
 Disallow: /dashboard
 Disallow: /admin
 Disallow: /profile
-Disallow: /booking/*
+Disallow: /bookings/
 
 # Sitemap location
-Sitemap: https://enny-event.lovable.app/sitemap.xml
+Sitemap: https://enny-event-space.lovable.app/sitemap.xml

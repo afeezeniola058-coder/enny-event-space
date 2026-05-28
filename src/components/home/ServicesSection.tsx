@@ -9,6 +9,7 @@ const services = [
     title: "Venue Booking",
     description: "Choose from our curated selection of stunning venues, from intimate spaces to grand ballrooms.",
     href: "/halls",
+    cta: "Explore Venues",
     color: "from-amber-500 to-orange-500",
   },
   {
@@ -16,6 +17,7 @@ const services = [
     title: "Catering Services",
     description: "Exquisite culinary experiences crafted by top chefs to delight your guests' palates.",
     href: "/catering",
+    cta: "View Catering Menus",
     color: "from-rose-500 to-pink-500",
   },
   {
@@ -23,6 +25,7 @@ const services = [
     title: "Decorations",
     description: "Transform any space into a magical setting with our bespoke decoration packages.",
     href: "/decorations",
+    cta: "Browse Decoration Styles",
     color: "from-violet-500 to-purple-500",
   },
   {
@@ -30,6 +33,7 @@ const services = [
     title: "Budget Planner",
     description: "Smart budgeting tools to help you plan your perfect event without overspending.",
     href: "/budget",
+    cta: "Plan Your Event Budget",
     color: "from-emerald-500 to-teal-500",
   },
 ];
@@ -78,8 +82,8 @@ const ServicesSection = () => {
                 </p>
 
                 <Button variant="ghost" size="sm" className="group/btn p-0" asChild>
-                  <Link to={service.href}>
-                    Learn More
+                  <Link to={service.href} aria-label={`${service.cta} — ${service.title}`}>
+                    {service.cta}
                     <ArrowRight className="h-4 w-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                   </Link>
                 </Button>
