@@ -107,9 +107,49 @@ const Contact = () => {
     window.open(`https://wa.me/2349017675564?text=${message}`, "_blank");
   };
 
+  const localBusinessJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "Eventify",
+    image: "https://enny-event-space.lovable.app/favicon.png",
+    url: "https://enny-event-space.lovable.app/contact",
+    telephone: "+234-901-767-5564",
+    email: "hello@eventify.com",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "123 Event Street",
+      addressLocality: "Victoria Island",
+      addressRegion: "Lagos",
+      addressCountry: "NG",
+    },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "09:00",
+        closes: "18:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: "Saturday",
+        opens: "10:00",
+        closes: "16:00",
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Contact Eventify — Lagos Event Planning"
+        description="Reach Eventify in Victoria Island, Lagos. Call, email, or message on WhatsApp to plan your wedding, corporate event, or celebration."
+        url="/contact"
+      />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(localBusinessJsonLd)}</script>
+      </Helmet>
       <Navbar />
+
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 bg-gradient-hero">
