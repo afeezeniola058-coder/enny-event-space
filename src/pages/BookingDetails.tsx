@@ -33,6 +33,7 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import { RescheduleDialog } from "@/components/booking/RescheduleDialog";
 import RefundTierDisplay from "@/components/booking/RefundTierDisplay";
 import CalendarExportButton from "@/components/booking/CalendarExportButton";
+import PaymentTimeline from "@/components/booking/PaymentTimeline";
 import {
   AlertDialog,
   AlertDialogAction,
