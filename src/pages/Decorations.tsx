@@ -6,7 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link } from "react-router-dom";
 import { useDecorationPackages } from "@/hooks/useDecorationPackages";
-
+import SEO from "@/components/SEO";
 const Decorations = () => {
   const { data: packages = [], isLoading } = useDecorationPackages();
   const [selectedStyle, setSelectedStyle] = useState<string>("All");
