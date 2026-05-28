@@ -9,10 +9,12 @@ interface SEOProps {
   noIndex?: boolean;
 }
 
+const SITE_URL = "https://enny-event-space.lovable.app";
+
 const defaultMeta = {
-  title: "Eventify - Premium Event Planning & Venue Booking",
+  title: "Eventify — Premium Event Planning & Venue Booking in Nigeria",
   description:
-    "Create unforgettable moments with Eventify. Book stunning venues, premium catering, and elegant decorations for weddings, corporate events, and celebrations in Nigeria.",
+    "Book stunning venues, premium catering, and elegant decorations for weddings and events across Nigeria with Eventify.",
   image: "/og-image.jpg",
   siteName: "Eventify",
 };
@@ -29,8 +31,10 @@ const SEO = ({
     ? `${title} | Eventify`
     : defaultMeta.title;
 
-  const currentUrl = url || (typeof window !== "undefined" ? window.location.href : "");
-  const imageUrl = image.startsWith("http") ? image : `https://enny-event.lovable.app${image}`;
+  const currentUrl = url
+    ? (url.startsWith("http") ? url : `${SITE_URL}${url}`)
+    : (typeof window !== "undefined" ? `${SITE_URL}${window.location.pathname}` : SITE_URL);
+  const imageUrl = image.startsWith("http") ? image : `${SITE_URL}${image}`;
 
   return (
     <Helmet>

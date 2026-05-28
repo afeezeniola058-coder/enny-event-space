@@ -1,87 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://enny-event.lovable.app/</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/halls</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/halls</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/catering</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/catering</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/decorations</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/decorations</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/budget</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/budget</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/book</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/book</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/about</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/about</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/contact</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/contact</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/faq</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/faq</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/blog</loc>
-    <lastmod>2026-05-01</lastmod>
+    <loc>https://enny-event-space.lovable.app/blog</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/gallery</loc>
-    <lastmod>2026-05-01</lastmod>
+    <loc>https://enny-event-space.lovable.app/gallery</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/terms</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/terms</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/privacy</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/privacy</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://enny-event.lovable.app/refund-policy</loc>
-    <lastmod>2026-01-18</lastmod>
+    <loc>https://enny-event-space.lovable.app/refund-policy</loc>
+    <lastmod>2026-05-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <!-- /blog/:slug entries are added per published post; none currently published. -->
+  <!-- /auth, /reset-password, /profile, /dashboard, /bookings/:id, /admin are intentionally excluded (auth-only or private). -->
 </urlset>

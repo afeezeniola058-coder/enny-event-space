@@ -1,0 +1,25 @@
+# Eventify
+
+> Premium event planning and venue booking platform in Nigeria — book halls, catering, and decoration packages for weddings, corporate events, and celebrations.
+
+Eventify helps users discover and book event venues (halls), pair them with catering and decoration packages, plan budgets, and manage their bookings end to end. Payments are handled via Paystack and bookings come with automatic email reminders.
+
+## Pages
+
+- [Home](/): Overview of Eventify's services and featured venues.
+- [Venues](/halls): Browse and book event halls with capacity and amenity details.
+- [Catering](/catering): Catering packages priced per person with menu items.
+- [Decorations](/decorations): Decoration packages by style — Classic, Rustic, Modern, Royal, and more.
+- [Budget Planner](/budget): Plan your event budget across venue, catering, and decor.
+- [Book an Event](/book): Multi-step booking form with promo codes and AI package recommendations.
+- [About](/about): Company story, mission, and team.
+- [Contact](/contact): Address, phone, email, business hours, and WhatsApp.
+- [FAQ](/faq): Answers on bookings, payments, cancellations, catering, and event day logistics.
+- [Blog](/blog): Articles and guides on event planning.
+- [Gallery](/gallery): Photo gallery of past Eventify events.
+
+## Optional
+
+- [Terms of Service](/terms): Legal terms for using the platform.
+- [Privacy Policy](/privacy): How user data is collected and used.
+- [Refund Policy](/refund-policy): Tiered refund schedule for cancelled bookings.
