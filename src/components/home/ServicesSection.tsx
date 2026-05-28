@@ -82,12 +82,12 @@ const ServicesSection = () => {
                 </p>
 
                 <Button variant="ghost" size="sm" className="group/btn p-0" asChild>
-                  <Link to={service.href}>
-                    Learn More
                   <Link to={service.href} aria-label={`${service.cta} — ${service.title}`}>
                     {service.cta}
                     <ArrowRight className="h-4 w-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                   </Link>
+                </Button>
+              </div>
             </motion.div>
           ))}
         </div>
