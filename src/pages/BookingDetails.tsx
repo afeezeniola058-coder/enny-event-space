@@ -490,6 +490,9 @@ const BookingDetails = () => {
               </CardContent>
             </Card>
 
+            {/* Payment Timeline */}
+            <PaymentTimeline booking={booking} />
+
             {/* Hall Details */}
             {hall && (
               <Card>
