@@ -58,16 +58,20 @@ const PromoCodeInput = ({ subtotal, applied, onApply, onRemove }: PromoCodeInput
 
     setLoading(true);
     try {
-      const nowIso = new Date().toISOString();
-      const { data, error } = await supabase
-        .from("promo_codes")
-        .select("id, code, description, discount_type, discount_value, max_discount, valid_until, valid_from, usage_limit, used_count, is_active")
-        .eq("code", trimmed)
-        .eq("is_active", true)
-        .maybeSingle();
+      // Server-side validation via SECURITY DEFINER RPC — does not expose
+      // internal counters, limits, or validity windows of other codes.
+      const { data, error } = await supabase.rpc("redeem_promo_code", { _code: trimmed });
 
-      if (error) throw error;
-      if (!data) {
+      if (error) {
+        toast({
+          title: "Invalid code",
+          description: error.message || "That promo code isn't valid right now.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) {
         toast({
           title: "Invalid code",
           description: "That promo code doesn't exist or is no longer active.",
@@ -75,31 +79,19 @@ const PromoCodeInput = ({ subtotal, applied, onApply, onRemove }: PromoCodeInput
         });
         return;
       }
-      if (data.valid_from && data.valid_from > nowIso) {
-        toast({ title: "Not yet valid", description: "This code is not yet active.", variant: "destructive" });
-        return;
-      }
-      if (data.valid_until && data.valid_until < nowIso) {
-        toast({ title: "Code expired", description: "This promo code has expired.", variant: "destructive" });
-        return;
-      }
-      if (data.usage_limit !== null && data.used_count >= data.usage_limit) {
-        toast({ title: "Code unavailable", description: "This promo code has reached its usage limit.", variant: "destructive" });
-        return;
-      }
 
       onApply({
-        id: data.id,
-        code: data.code,
-        description: data.description,
-        discount_type: data.discount_type as "percentage" | "fixed",
-        discount_value: Number(data.discount_value),
-        max_discount: data.max_discount !== null ? Number(data.max_discount) : null,
+        id: row.id,
+        code: row.code,
+        description: row.description,
+        discount_type: row.discount_type as "percentage" | "fixed",
+        discount_value: Number(row.discount_value),
+        max_discount: row.max_discount !== null ? Number(row.max_discount) : null,
       });
       setCode("");
       toast({
         title: "Promo applied!",
-        description: `Code ${data.code} has been applied to your booking.`,
+        description: `Code ${row.code} has been applied to your booking.`,
       });
     } catch (err) {
       toast({
