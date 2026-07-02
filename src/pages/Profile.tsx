@@ -185,18 +185,20 @@ const Profile = () => {
     setIsUploadingAvatar(true);
     try {
       const ext = file.name.split(".").pop();
-      const filePath = `${user.id}/avatar.${ext}`;
+      // Random filename so previous avatars remain non-enumerable
+      const filePath = `${user.id}/${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file, { upsert: true });
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Bucket is private — issue a long-lived signed URL for display.
+      const { data: signed, error: signErr } = await supabase.storage
         .from("avatars")
-        .getPublicUrl(filePath);
-
-      const avatarUrl = `${publicUrl}?t=${Date.now()}`;
+        .createSignedUrl(filePath, 60 * 60 * 24 * 365);
+      if (signErr) throw signErr;
+      const avatarUrl = signed?.signedUrl ?? "";
 
       const { error: updateError } = await supabase
         .from("profiles")
