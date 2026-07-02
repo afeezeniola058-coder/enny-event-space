@@ -659,6 +659,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      redeem_promo_code: {
+        Args: { _code: string }
+        Returns: {
+          code: string
+          description: string
+          discount_type: string
+          discount_value: number
+          id: string
+          max_discount: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
