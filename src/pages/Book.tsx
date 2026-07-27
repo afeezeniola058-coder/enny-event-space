@@ -632,8 +632,58 @@ const Book = () => {
                             </FormItem>
                           )}
                         />
+
+                        {/* Dietary customization */}
+                        {(() => {
+                          const chosen = cateringPackages.find((c) => c.id === selectedCateringId);
+                          const options = chosen?.dietary_options || [];
+                          if (!chosen || options.length === 0) return null;
+                          return (
+                            <FormField
+                              control={form.control}
+                              name="dietaryPreferences"
+                              render={({ field }) => (
+                                <FormItem className="mt-6">
+                                  <FormLabel className="font-body">
+                                    Dietary & menu customization
+                                  </FormLabel>
+                                  <FormControl>
+                                    <div className="flex flex-wrap gap-2 pt-2">
+                                      {options.map((opt) => {
+                                        const active = (field.value || []).includes(opt);
+                                        return (
+                                          <button
+                                            type="button"
+                                            key={opt}
+                                            onClick={() =>
+                                              field.onChange(
+                                                active
+                                                  ? (field.value || []).filter((v) => v !== opt)
+                                                  : [...(field.value || []), opt]
+                                              )
+                                            }
+                                            className={cn(
+                                              "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                                              active
+                                                ? "border-primary bg-primary/10 text-primary"
+                                                : "border-border text-muted-foreground hover:border-primary/50"
+                                            )}
+                                          >
+                                            {opt}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          );
+                        })()}
                       </CardContent>
                     </Card>
+
 
                     {/* Decoration Selection */}
                     <Card>
