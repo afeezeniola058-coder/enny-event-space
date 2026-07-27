@@ -73,6 +73,7 @@ export type Database = {
           catering_package_id: string | null
           created_at: string
           decoration_package_id: string | null
+          dietary_preferences: string[] | null
           discount_amount: number
           end_time: string
           event_date: string
@@ -94,6 +95,7 @@ export type Database = {
           catering_package_id?: string | null
           created_at?: string
           decoration_package_id?: string | null
+          dietary_preferences?: string[] | null
           discount_amount?: number
           end_time: string
           event_date: string
@@ -115,6 +117,7 @@ export type Database = {
           catering_package_id?: string | null
           created_at?: string
           decoration_package_id?: string | null
+          dietary_preferences?: string[] | null
           discount_amount?: number
           end_time?: string
           event_date?: string
@@ -168,31 +171,40 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          dietary_options: string[] | null
+          flat_price: number | null
           id: string
           image_url: string | null
           menu_items: string[] | null
           name: string
           price_per_person: number
+          pricing_type: string
         }
         Insert: {
           category?: string | null
           created_at?: string
           description?: string | null
+          dietary_options?: string[] | null
+          flat_price?: number | null
           id?: string
           image_url?: string | null
           menu_items?: string[] | null
           name: string
           price_per_person: number
+          pricing_type?: string
         }
         Update: {
           category?: string | null
           created_at?: string
           description?: string | null
+          dietary_options?: string[] | null
+          flat_price?: number | null
           id?: string
           image_url?: string | null
           menu_items?: string[] | null
           name?: string
           price_per_person?: number
+          pricing_type?: string
         }
         Relationships: []
       }
