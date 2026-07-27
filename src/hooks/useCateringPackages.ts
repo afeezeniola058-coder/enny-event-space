@@ -9,6 +9,9 @@ interface CateringPackage {
   menu_items: string[] | null;
   image_url: string | null;
   category: string | null;
+  pricing_type?: string | null;
+  flat_price?: number | null;
+  dietary_options?: string[] | null;
 }
 
 const samplePackages: CateringPackage[] = [
@@ -20,6 +23,9 @@ const samplePackages: CateringPackage[] = [
     menu_items: ["Jollof Rice", "Fried Rice", "Grilled Chicken", "Beef Suya", "Plantain", "Coleslaw", "Soft Drinks"],
     image_url: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=800",
     category: "Traditional",
+    pricing_type: "per_person",
+    flat_price: null,
+    dietary_options: ["Vegetarian", "Halal", "No pork", "Low spice"],
   },
   {
     id: "2",
@@ -29,6 +35,9 @@ const samplePackages: CateringPackage[] = [
     menu_items: ["Caesar Salad", "Grilled Salmon", "Beef Tenderloin", "Pasta Primavera", "Roasted Vegetables", "Tiramisu", "Wine Selection"],
     image_url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=800",
     category: "International",
+    pricing_type: "per_person",
+    flat_price: null,
+    dietary_options: ["Vegetarian", "Vegan", "Gluten-free", "Pescatarian"],
   },
   {
     id: "3",
@@ -38,6 +47,9 @@ const samplePackages: CateringPackage[] = [
     menu_items: ["Mini Burgers", "Shrimp Skewers", "Bruschetta", "Spring Rolls", "Cheese Board", "Fruit Display", "Cocktails"],
     image_url: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800",
     category: "Cocktail",
+    pricing_type: "flat",
+    flat_price: 450000,
+    dietary_options: ["Vegetarian", "Halal", "Nut-free"],
   },
   {
     id: "4",
@@ -47,6 +59,9 @@ const samplePackages: CateringPackage[] = [
     menu_items: ["Lobster Bisque", "Wagyu Beef", "Truffle Risotto", "Oysters", "Chocolate Soufflé", "Champagne", "Petit Fours"],
     image_url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800",
     category: "Luxury",
+    pricing_type: "per_person",
+    flat_price: null,
+    dietary_options: ["Vegetarian", "Vegan", "Gluten-free", "Halal", "Kosher-style"],
   },
 ];
 

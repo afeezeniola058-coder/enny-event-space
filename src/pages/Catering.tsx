@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { UtensilsCrossed, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SEO from "@/components/SEO";
@@ -136,11 +137,24 @@ const Catering = () => {
                           {pkg.description}
                         </p>
 
-                        <div className="flex items-baseline gap-1 mb-4">
-                          <span className="font-display text-3xl font-bold text-primary">
-                            {formatPrice(pkg.price_per_person)}
-                          </span>
-                          <span className="text-muted-foreground text-sm">/person</span>
+                        <div className="mb-4">
+                          <div className="flex items-baseline gap-1">
+                            <span className="font-display text-3xl font-bold text-primary">
+                              {formatPrice(
+                                pkg.pricing_type === "flat"
+                                  ? pkg.flat_price ?? 0
+                                  : pkg.price_per_person
+                              )}
+                            </span>
+                            <span className="text-muted-foreground text-sm">
+                              {pkg.pricing_type === "flat" ? "flat rate" : "/person"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {pkg.pricing_type === "flat"
+                              ? "One fixed price, regardless of guest count"
+                              : "Charged per head based on your guest count"}
+                          </p>
                         </div>
 
                         {pkg.menu_items && (
@@ -162,9 +176,25 @@ const Catering = () => {
                           </div>
                         )}
 
+                        {pkg.dietary_options && pkg.dietary_options.length > 0 && (
+                          <div className="mb-4">
+                            <p className="text-sm font-medium text-foreground mb-2">
+                              Dietary customization:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {pkg.dietary_options.map((opt) => (
+                                <Badge key={opt} variant="secondary" className="font-body">
+                                  {opt}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         <Button variant="gold" className="w-full mt-auto" asChild>
-                          <Link to={`/book?catering=${pkg.id}`}>Select Package</Link>
+                          <Link to={`/book?catering=${pkg.id}`}>Add to my booking</Link>
                         </Button>
+
                       </div>
                     </div>
                   </motion.div>

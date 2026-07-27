@@ -16,6 +16,9 @@ interface CateringPackage {
   name: string;
   description: string | null;
   price_per_person: number;
+  pricing_type?: string | null;
+  flat_price?: number | null;
+  dietary_options?: string[] | null;
   menu_items: string[] | null;
   image_url: string | null;
   category: string | null;
@@ -29,6 +32,9 @@ const CateringManagement = () => {
     name: '',
     description: '',
     price_per_person: '',
+    pricing_type: 'per_person',
+    flat_price: '',
+    dietary_options: '',
     menu_items: '',
     image_url: '',
     category: '',
@@ -88,7 +94,7 @@ const CateringManagement = () => {
   });
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', price_per_person: '', menu_items: '', image_url: '', category: '' });
+    setFormData({ name: '', description: '', price_per_person: '', pricing_type: 'per_person', flat_price: '', dietary_options: '', menu_items: '', image_url: '', category: '' });
     setEditingPackage(null);
     setIsOpen(false);
   };
@@ -99,6 +105,9 @@ const CateringManagement = () => {
       name: pkg.name,
       description: pkg.description || '',
       price_per_person: String(pkg.price_per_person),
+      pricing_type: pkg.pricing_type || 'per_person',
+      flat_price: pkg.flat_price != null ? String(pkg.flat_price) : '',
+      dietary_options: pkg.dietary_options?.join(', ') || '',
       menu_items: pkg.menu_items?.join(', ') || '',
       image_url: pkg.image_url || '',
       category: pkg.category || '',
@@ -111,7 +120,10 @@ const CateringManagement = () => {
     const packageData = {
       name: formData.name,
       description: formData.description || null,
-      price_per_person: parseFloat(formData.price_per_person),
+      price_per_person: parseFloat(formData.price_per_person || '0'),
+      pricing_type: formData.pricing_type,
+      flat_price: formData.flat_price ? parseFloat(formData.flat_price) : null,
+      dietary_options: formData.dietary_options ? formData.dietary_options.split(',').map(a => a.trim()).filter(Boolean) : null,
       menu_items: formData.menu_items ? formData.menu_items.split(',').map(a => a.trim()) : null,
       image_url: formData.image_url || null,
       category: formData.category || null,
@@ -163,6 +175,30 @@ const CateringManagement = () => {
                   <Input id="category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} placeholder="e.g., Nigerian, Continental" />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="pricing_type">Pricing Type</Label>
+                  <select
+                    id="pricing_type"
+                    value={formData.pricing_type}
+                    onChange={(e) => setFormData({ ...formData, pricing_type: e.target.value })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="per_person">Per head</option>
+                    <option value="flat">Flat rate</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="flat_price">Flat Price (₦)</Label>
+                  <Input id="flat_price" type="number" value={formData.flat_price} onChange={(e) => setFormData({ ...formData, flat_price: e.target.value })} disabled={formData.pricing_type !== 'flat'} />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="dietary">Dietary Options (comma-separated)</Label>
+                <Input id="dietary" value={formData.dietary_options} onChange={(e) => setFormData({ ...formData, dietary_options: e.target.value })} placeholder="Vegetarian, Vegan, Halal, Gluten-free" />
+              </div>
+
               <div>
                 <Label htmlFor="image">Image URL</Label>
                 <Input id="image" value={formData.image_url} onChange={(e) => setFormData({ ...formData, image_url: e.target.value })} placeholder="https://..." />
@@ -204,7 +240,7 @@ const CateringManagement = () => {
                   <TableRow key={pkg.id}>
                     <TableCell className="font-medium">{pkg.name}</TableCell>
                     <TableCell>{pkg.category || '-'}</TableCell>
-                    <TableCell>{formatPrice(pkg.price_per_person)}</TableCell>
+                    <TableCell>{pkg.pricing_type === 'flat' ? `${formatPrice(pkg.flat_price ?? 0)} flat` : `${formatPrice(pkg.price_per_person)}/person`}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{pkg.menu_items?.slice(0, 3).join(', ') || '-'}{pkg.menu_items && pkg.menu_items.length > 3 && '...'}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(pkg)}>
