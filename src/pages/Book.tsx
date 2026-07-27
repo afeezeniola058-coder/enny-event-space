@@ -94,6 +94,12 @@ const Book = () => {
   const endTime = form.watch("endTime");
   const guestCount = form.watch("guestCount");
 
+  // Reset dietary choices when the catering package changes
+  useEffect(() => {
+    form.setValue("dietaryPreferences", []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCateringId]);
+
   // Check authentication
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
