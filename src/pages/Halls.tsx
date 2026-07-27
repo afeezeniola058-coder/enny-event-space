@@ -233,23 +233,51 @@ const Halls = () => {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredHalls.map((hall, index) => (
+                {filteredHalls.map((hall, index) => {
+                  const availability = dateKey ? takenHalls[hall.id] : undefined;
+                  const isFullyBooked = availability === "confirmed";
+                  const isPending = availability === "pending";
+                  return (
                   <motion.div
                     key={hall.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all duration-300 hover-lift"
+                    className={cn(
+                      "group bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all duration-300 hover-lift",
+                      isFullyBooked && "opacity-90 border-destructive/40"
+                    )}
                   >
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <img
                         src={hall.image_url || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800"}
-                        alt={hall.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        alt={`${hall.name} event venue in Lagos`}
+                        loading="lazy"
+                        className={cn(
+                          "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500",
+                          isFullyBooked && "grayscale"
+                        )}
                       />
                       <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
                         {formatPrice(hall.price_per_hour)}/hr
                       </div>
+                      {dateKey && (
+                        <div className="absolute top-4 left-4">
+                          {isFullyBooked ? (
+                            <Badge variant="destructive" className="gap-1">
+                              <XCircle className="h-3 w-3" /> Fully booked
+                            </Badge>
+                          ) : isPending ? (
+                            <Badge className="gap-1 bg-amber-500 text-white hover:bg-amber-500">
+                              <Clock className="h-3 w-3" /> Pending hold
+                            </Badge>
+                          ) : (
+                            <Badge className="gap-1 bg-green-600 text-white hover:bg-green-600">
+                              <CheckCircle2 className="h-3 w-3" /> Available
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="p-6">
@@ -295,9 +323,25 @@ const Halls = () => {
                         </div>
                       )}
 
-                      <Button variant="gold" className="w-full" asChild>
-                        <Link to={`/book?hall=${hall.id}`}>Book Now</Link>
-                      </Button>
+                      {isFullyBooked && dateKey ? (
+                        <div className="space-y-2">
+                          <Button variant="outline" className="w-full" disabled>
+                            Fully booked on {format(checkDate!, "MMM d")}
+                          </Button>
+                          <WaitlistButton hallId={hall.id} eventDate={dateKey} className="w-full" />
+                        </div>
+                      ) : (
+                        <Button variant="gold" className="w-full" asChild>
+                          <Link to={dateKey ? `/book?hall=${hall.id}&date=${dateKey}` : `/book?hall=${hall.id}`}>
+                            Book Now
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  </motion.div>
+                  );
+                })}
+
                     </div>
                   </motion.div>
                 ))}
