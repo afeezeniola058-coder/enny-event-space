@@ -341,10 +341,6 @@ const Halls = () => {
                   </motion.div>
                   );
                 })}
-
-                    </div>
-                  </motion.div>
-                ))}
               </div>
             )}
 
