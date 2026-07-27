@@ -36,6 +36,7 @@ const bookingSchema = z.object({
   hallId: z.string().min(1, "Please select a venue"),
   cateringPackageId: z.string().optional(),
   decorationPackageId: z.string().optional(),
+  dietaryPreferences: z.array(z.string()).optional(),
   notes: z.string().max(500, "Notes too long").optional(),
 });
 
@@ -63,6 +64,13 @@ const Book = () => {
   const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hallQueryParam);
   const preselectedHallId = isValidUUID ? hallQueryParam : "";
 
+  const idParam = (key: string) => {
+    const v = searchParams.get(key) || "";
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v) ? v : "";
+  };
+  const preselectedCateringId = idParam("catering");
+  const preselectedDecorationId = idParam("decoration");
+
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
@@ -71,14 +79,16 @@ const Book = () => {
       endTime: "",
       guestCount: 50,
       hallId: preselectedHallId,
-      cateringPackageId: "",
-      decorationPackageId: "",
+      cateringPackageId: preselectedCateringId,
+      decorationPackageId: preselectedDecorationId,
+      dietaryPreferences: [],
       notes: "",
     },
   });
 
   const selectedHallId = form.watch("hallId");
   const selectedCateringId = form.watch("cateringPackageId");
+  const selectedDietary = form.watch("dietaryPreferences") || [];
   const selectedDecorationId = form.watch("decorationPackageId");
   const startTime = form.watch("startTime");
   const endTime = form.watch("endTime");
@@ -131,7 +141,12 @@ const Book = () => {
       total += selectedHall.price_per_hour * hours;
     }
     const selectedCatering = cateringPackages.find((c) => c.id === selectedCateringId);
-    if (selectedCatering) total += selectedCatering.price_per_person * (guestCount || 0);
+    if (selectedCatering) {
+      total +=
+        selectedCatering.pricing_type === "flat"
+          ? selectedCatering.flat_price ?? 0
+          : selectedCatering.price_per_person * (guestCount || 0);
+    }
     const selectedDecoration = decorationPackages.find((d) => d.id === selectedDecorationId);
     if (selectedDecoration) total += selectedDecoration.price;
     return total;
@@ -210,6 +225,10 @@ const Book = () => {
         guest_count: data.guestCount,
         hall_id: data.hallId,
         catering_package_id: data.cateringPackageId || null,
+        dietary_preferences:
+          data.cateringPackageId && data.dietaryPreferences?.length
+            ? data.dietaryPreferences
+            : null,
         decoration_package_id: data.decorationPackageId || null,
         notes: data.notes || null,
         total_amount: totalAmount,
@@ -595,8 +614,15 @@ const Book = () => {
                                       <div className="p-3">
                                         <h4 className="font-semibold text-foreground">{pkg.name}</h4>
                                         <p className="text-sm text-muted-foreground">
-                                          {formatPrice(pkg.price_per_person)}/person
+                                          {pkg.pricing_type === "flat"
+                                            ? `${formatPrice(pkg.flat_price ?? 0)} flat rate`
+                                            : `${formatPrice(pkg.price_per_person)}/person`}
                                         </p>
+                                        {pkg.dietary_options && pkg.dietary_options.length > 0 && (
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            {pkg.dietary_options.slice(0, 3).join(" · ")}
+                                          </p>
+                                        )}
                                       </div>
                                     </div>
                                   ))}
@@ -758,8 +784,19 @@ const Book = () => {
                             {cateringPackages.find((c) => c.id === selectedCateringId)?.name || "Loading..."}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {guestCount} guests × {formatPrice(cateringPackages.find((c) => c.id === selectedCateringId)?.price_per_person || 0)}
+                            {(() => {
+                              const c = cateringPackages.find((x) => x.id === selectedCateringId);
+                              if (!c) return null;
+                              return c.pricing_type === "flat"
+                                ? `Flat rate ${formatPrice(c.flat_price ?? 0)}`
+                                : `${guestCount} guests × ${formatPrice(c.price_per_person)}`;
+                            })()}
                           </p>
+                          {selectedDietary.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Dietary: {selectedDietary.join(", ")}
+                            </p>
+                          )}
                         </div>
                       )}
 
