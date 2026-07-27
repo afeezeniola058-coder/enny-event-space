@@ -652,6 +652,20 @@ export type Database = {
       }
     }
     Functions: {
+      get_hall_availability: {
+        Args: { _hall_id: string }
+        Returns: {
+          event_date: string
+          status: string
+        }[]
+      }
+      get_hall_availability_for_date: {
+        Args: { _event_date: string }
+        Returns: {
+          hall_id: string
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
