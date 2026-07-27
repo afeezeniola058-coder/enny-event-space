@@ -1,14 +1,21 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Users, MapPin, Star, Search, Filter } from "lucide-react";
+import { Users, MapPin, Star, Search, Filter, CalendarIcon, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { useHalls } from "@/hooks/useHalls";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import WaitlistButton from "@/components/booking/WaitlistButton";
 import logo from "@/assets/logo.png";
+import { cn } from "@/lib/utils";
 import HallFiltersPanel, {
   type HallFilters,
   getDefaultFilters,
@@ -21,10 +28,30 @@ const Halls = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<HallFilters | null>(null);
+  const [checkDate, setCheckDate] = useState<Date | undefined>();
+
+  const dateKey = checkDate ? format(checkDate, "yyyy-MM-dd") : null;
+
+  const { data: takenHalls = {}, isFetching: checkingAvailability } = useQuery({
+    queryKey: ["hall-availability-by-date", dateKey],
+    enabled: !!dateKey,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_hall_availability_for_date", {
+        _event_date: dateKey as string,
+      });
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data ?? []).forEach((row: { hall_id: string; status: string }) => {
+        map[row.hall_id] = row.status;
+      });
+      return map;
+    },
+  });
 
   // Initialize filters from data
   const activeFilters = filters ?? getDefaultFilters(halls);
   const activeCount = getActiveFilterCount(activeFilters, halls);
+
 
   const filteredHalls = useMemo(() => {
     return halls.filter((hall) => {
@@ -116,6 +143,47 @@ const Halls = () => {
                   )}
                 </Button>
               </div>
+
+              {/* Availability check */}
+              <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center max-w-xl mx-auto">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "h-12 rounded-xl w-full sm:w-[260px] justify-start text-left font-normal",
+                        !checkDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-5 w-5" />
+                      {checkDate ? format(checkDate, "PPP") : <span>Check availability by date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={checkDate}
+                      onSelect={setCheckDate}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {checkDate && (
+                  <Button variant="ghost" onClick={() => setCheckDate(undefined)} className="rounded-xl">
+                    Clear date
+                  </Button>
+                )}
+              </div>
+              {checkDate && (
+                <p className="text-sm text-muted-foreground font-body mt-3">
+                  {checkingAvailability
+                    ? "Checking availability…"
+                    : `Showing availability for ${format(checkDate, "MMM d, yyyy")}`}
+                </p>
+              )}
+
             </motion.div>
           </div>
         </section>
@@ -165,23 +233,51 @@ const Halls = () => {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredHalls.map((hall, index) => (
+                {filteredHalls.map((hall, index) => {
+                  const availability = dateKey ? takenHalls[hall.id] : undefined;
+                  const isFullyBooked = availability === "confirmed";
+                  const isPending = availability === "pending";
+                  return (
                   <motion.div
                     key={hall.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all duration-300 hover-lift"
+                    className={cn(
+                      "group bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all duration-300 hover-lift",
+                      isFullyBooked && "opacity-90 border-destructive/40"
+                    )}
                   >
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <img
                         src={hall.image_url || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800"}
-                        alt={hall.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        alt={`${hall.name} event venue in Lagos`}
+                        loading="lazy"
+                        className={cn(
+                          "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500",
+                          isFullyBooked && "grayscale"
+                        )}
                       />
                       <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
                         {formatPrice(hall.price_per_hour)}/hr
                       </div>
+                      {dateKey && (
+                        <div className="absolute top-4 left-4">
+                          {isFullyBooked ? (
+                            <Badge variant="destructive" className="gap-1">
+                              <XCircle className="h-3 w-3" /> Fully booked
+                            </Badge>
+                          ) : isPending ? (
+                            <Badge className="gap-1 bg-amber-500 text-white hover:bg-amber-500">
+                              <Clock className="h-3 w-3" /> Pending hold
+                            </Badge>
+                          ) : (
+                            <Badge className="gap-1 bg-green-600 text-white hover:bg-green-600">
+                              <CheckCircle2 className="h-3 w-3" /> Available
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="p-6">
@@ -227,12 +323,24 @@ const Halls = () => {
                         </div>
                       )}
 
-                      <Button variant="gold" className="w-full" asChild>
-                        <Link to={`/book?hall=${hall.id}`}>Book Now</Link>
-                      </Button>
+                      {isFullyBooked && dateKey ? (
+                        <div className="space-y-2">
+                          <Button variant="outline" className="w-full" disabled>
+                            Fully booked on {format(checkDate!, "MMM d")}
+                          </Button>
+                          <WaitlistButton hallId={hall.id} eventDate={dateKey} className="w-full" />
+                        </div>
+                      ) : (
+                        <Button variant="gold" className="w-full" asChild>
+                          <Link to={dateKey ? `/book?hall=${hall.id}&date=${dateKey}` : `/book?hall=${hall.id}`}>
+                            Book Now
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
