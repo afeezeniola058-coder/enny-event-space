@@ -1,14 +1,21 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Users, MapPin, Star, Search, Filter } from "lucide-react";
+import { Users, MapPin, Star, Search, Filter, CalendarIcon, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { useHalls } from "@/hooks/useHalls";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import WaitlistButton from "@/components/booking/WaitlistButton";
 import logo from "@/assets/logo.png";
+import { cn } from "@/lib/utils";
 import HallFiltersPanel, {
   type HallFilters,
   getDefaultFilters,
@@ -21,10 +28,30 @@ const Halls = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<HallFilters | null>(null);
+  const [checkDate, setCheckDate] = useState<Date | undefined>();
+
+  const dateKey = checkDate ? format(checkDate, "yyyy-MM-dd") : null;
+
+  const { data: takenHalls = {}, isFetching: checkingAvailability } = useQuery({
+    queryKey: ["hall-availability-by-date", dateKey],
+    enabled: !!dateKey,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_hall_availability_for_date", {
+        _event_date: dateKey as string,
+      });
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data ?? []).forEach((row: { hall_id: string; status: string }) => {
+        map[row.hall_id] = row.status;
+      });
+      return map;
+    },
+  });
 
   // Initialize filters from data
   const activeFilters = filters ?? getDefaultFilters(halls);
   const activeCount = getActiveFilterCount(activeFilters, halls);
+
 
   const filteredHalls = useMemo(() => {
     return halls.filter((hall) => {
