@@ -160,7 +160,7 @@ const Decorations = () => {
                       )}
 
                       <Button variant="gold" className="w-full" asChild>
-                        <Link to={`/book?decoration=${pkg.id}`}>Choose Package</Link>
+                        <Link to={`/book?decoration=${pkg.id}`}>Add to my booking</Link>
                       </Button>
                     </div>
                   </motion.div>
