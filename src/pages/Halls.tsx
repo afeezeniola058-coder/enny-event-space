@@ -143,6 +143,47 @@ const Halls = () => {
                   )}
                 </Button>
               </div>
+
+              {/* Availability check */}
+              <div className="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center max-w-xl mx-auto">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "h-12 rounded-xl w-full sm:w-[260px] justify-start text-left font-normal",
+                        !checkDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-5 w-5" />
+                      {checkDate ? format(checkDate, "PPP") : <span>Check availability by date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={checkDate}
+                      onSelect={setCheckDate}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {checkDate && (
+                  <Button variant="ghost" onClick={() => setCheckDate(undefined)} className="rounded-xl">
+                    Clear date
+                  </Button>
+                )}
+              </div>
+              {checkDate && (
+                <p className="text-sm text-muted-foreground font-body mt-3">
+                  {checkingAvailability
+                    ? "Checking availability…"
+                    : `Showing availability for ${format(checkDate, "MMM d, yyyy")}`}
+                </p>
+              )}
+
             </motion.div>
           </div>
         </section>
