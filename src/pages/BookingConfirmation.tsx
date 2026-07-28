@@ -12,7 +12,9 @@ import {
   CalendarDays,
   Users,
   Clock,
+  Download,
 } from "lucide-react";
+import { generateReceiptPDF } from "@/utils/generateReceiptPDF";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
