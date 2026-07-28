@@ -65,10 +65,10 @@ const BookingConfirmation = () => {
       const { data } = await supabase
         .from("bookings")
         .select(
-          `id, event_name, event_date, start_time, end_time, guest_count, total_amount, discount_amount, status, payment_status, notes, dietary_preferences,
+          `id, event_name, event_date, start_time, end_time, guest_count, total_amount, discount_amount, status, payment_status, payment_reference, created_at, notes, dietary_preferences,
            halls ( name, price_per_hour ),
            catering_packages ( name, price_per_person, pricing_type, flat_price ),
-           decoration_packages ( name, price )`
+           decoration_packages ( name, price, style )`
         )
         .eq("id", id)
         .maybeSingle();
