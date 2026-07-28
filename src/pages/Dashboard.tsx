@@ -98,9 +98,9 @@ const Dashboard = () => {
         .from("bookings")
         .select(`
           *,
-          hall:halls(name),
-          catering_package:catering_packages(name),
-          decoration_package:decoration_packages(name)
+          hall:halls(name, price_per_hour),
+          catering_package:catering_packages(name, price_per_person, pricing_type, flat_price),
+          decoration_package:decoration_packages(name, price, style)
         `)
         .order("event_date", { ascending: true });
       if (error) throw error;
