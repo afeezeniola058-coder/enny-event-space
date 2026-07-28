@@ -799,8 +799,11 @@ const Book = () => {
                       className="w-full"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Submitting..." : "Complete Booking"}
+                      {isSubmitting ? "Redirecting to payment..." : `Proceed to Payment — ${formatPrice(calculateTotal())}`}
                     </Button>
+                    <p className="text-center text-xs text-muted-foreground -mt-4">
+                      Catering and decorations are optional — venue only is fine.
+                    </p>
                   </form>
                 </Form>
               </div>
