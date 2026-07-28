@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, CreditCard, Clock, Plus, X } from "lucide-react";
+import { Calendar, CreditCard, Clock, Plus, X, Download } from "lucide-react";
+import { generateReceiptPDF } from "@/utils/generateReceiptPDF";
 import UserAnalytics from "@/components/dashboard/UserAnalytics";
 import MyWaitlist from "@/components/dashboard/MyWaitlist";
 import { Button } from "@/components/ui/button";
