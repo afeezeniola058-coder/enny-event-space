@@ -9,15 +9,22 @@ interface ReceiptData {
     end_time: string;
     guest_count: number;
     total_amount: number;
+    discount_amount?: number | null;
     payment_status: string;
     payment_reference: string | null;
     status: string;
-    created_at: string;
+    created_at?: string;
     notes: string | null;
+    dietary_preferences?: string[] | null;
   };
   hall?: { name: string; price_per_hour: number } | null;
-  catering?: { name: string; price_per_person: number } | null;
-  decoration?: { name: string; price: number; style: string | null } | null;
+  catering?: {
+    name: string;
+    price_per_person: number;
+    pricing_type?: string | null;
+    flat_price?: number | null;
+  } | null;
+  decoration?: { name: string; price: number; style?: string | null } | null;
   userEmail?: string;
   userName?: string;
 }
