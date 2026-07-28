@@ -799,8 +799,11 @@ const Book = () => {
                       className="w-full"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Submitting..." : "Complete Booking"}
+                      {isSubmitting ? "Redirecting to payment..." : `Proceed to Payment — ${formatPrice(calculateTotal())}`}
                     </Button>
+                    <p className="text-center text-xs text-muted-foreground -mt-4">
+                      Catering and decorations are optional — venue only is fine.
+                    </p>
                   </form>
                 </Form>
               </div>
@@ -817,7 +820,14 @@ const Book = () => {
                       <CardTitle className="font-display">Booking Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">
+                      {!selectedHallId && !selectedCateringId && !selectedDecorationId && (
+                        <p className="text-sm text-muted-foreground">
+                          Pick a venue and date to start. Catering and decorations are optional add-ons.
+                        </p>
+                      )}
+
                       {/* Selected Hall */}
+
                       {selectedHallId && (
                         <div className="pb-4 border-b border-border">
                           <p className="text-sm text-muted-foreground mb-1">Venue</p>
@@ -904,7 +914,7 @@ const Book = () => {
                           </p>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Payment will be collected after confirmation
+                          One secure Paystack payment covers your venue and any add-ons.
                         </p>
                       </div>
 
