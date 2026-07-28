@@ -9,15 +9,22 @@ interface ReceiptData {
     end_time: string;
     guest_count: number;
     total_amount: number;
+    discount_amount?: number | null;
     payment_status: string;
     payment_reference: string | null;
     status: string;
-    created_at: string;
+    created_at?: string;
     notes: string | null;
+    dietary_preferences?: string[] | null;
   };
   hall?: { name: string; price_per_hour: number } | null;
-  catering?: { name: string; price_per_person: number } | null;
-  decoration?: { name: string; price: number; style: string | null } | null;
+  catering?: {
+    name: string;
+    price_per_person: number;
+    pricing_type?: string | null;
+    flat_price?: number | null;
+  } | null;
+  decoration?: { name: string; price: number; style?: string | null } | null;
   userEmail?: string;
   userName?: string;
 }
@@ -181,28 +188,40 @@ export function generateReceiptPDF(data: ReceiptData): void {
     doc.line(margin, y - 2, pageWidth - margin, y - 2);
   };
 
+  let subtotal = 0;
+
   if (data.hall) {
     const hours = (() => {
       const [sh, sm] = data.booking.start_time.split(':').map(Number);
       const [eh, em] = data.booking.end_time.split(':').map(Number);
       return Math.max(1, (eh * 60 + em - sh * 60 - sm) / 60);
     })();
-    addLineItem(
-      'Venue',
-      `${data.hall.name} (${hours}h)`,
-      formatPrice(data.hall.price_per_hour * hours)
-    );
+    const amount = data.hall.price_per_hour * hours;
+    subtotal += amount;
+    addLineItem('Venue', `${data.hall.name} (${hours}h)`, formatPrice(amount));
   }
 
   if (data.catering) {
+    const isFlat = data.catering.pricing_type === 'flat';
+    const amount = isFlat
+      ? data.catering.flat_price ?? 0
+      : data.catering.price_per_person * data.booking.guest_count;
+    subtotal += amount;
     addLineItem(
       'Catering',
-      `${data.catering.name} × ${data.booking.guest_count} guests`,
-      formatPrice(data.catering.price_per_person * data.booking.guest_count)
+      isFlat
+        ? `${data.catering.name} (flat rate)`
+        : `${data.catering.name} x ${data.booking.guest_count} guests`,
+      formatPrice(amount)
     );
+    const diet = data.booking.dietary_preferences;
+    if (diet && diet.length > 0) {
+      addLineItem('', `Dietary: ${diet.join(', ')}`, '');
+    }
   }
 
   if (data.decoration) {
+    subtotal += data.decoration.price;
     addLineItem(
       'Decoration',
       `${data.decoration.name}${data.decoration.style ? ` (${data.decoration.style})` : ''}`,
@@ -210,7 +229,30 @@ export function generateReceiptPDF(data: ReceiptData): void {
     );
   }
 
-  y += 4;
+  y += 6;
+
+  // ── Subtotal / discount ──
+  const discount = data.booking.discount_amount ?? 0;
+  if (subtotal > 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(...COLORS.mid);
+    doc.text('Subtotal', pageWidth - margin - 65, y);
+    doc.setTextColor(...COLORS.dark);
+    doc.text(formatPrice(subtotal), pageWidth - margin - 3, y, { align: 'right' });
+    y += 6;
+  }
+  if (discount > 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(...COLORS.mid);
+    doc.text('Discount', pageWidth - margin - 65, y);
+    doc.setTextColor(...COLORS.green);
+    doc.text(`- ${formatPrice(discount)}`, pageWidth - margin - 3, y, { align: 'right' });
+    y += 6;
+  }
+
+  y += 2;
 
   // ── Total ──
   doc.setFillColor(...COLORS.navy);

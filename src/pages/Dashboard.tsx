@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, CreditCard, Clock, Plus, X } from "lucide-react";
+import { Calendar, CreditCard, Clock, Plus, X, Download } from "lucide-react";
+import { generateReceiptPDF } from "@/utils/generateReceiptPDF";
 import UserAnalytics from "@/components/dashboard/UserAnalytics";
 import MyWaitlist from "@/components/dashboard/MyWaitlist";
 import { Button } from "@/components/ui/button";
@@ -98,9 +99,9 @@ const Dashboard = () => {
         .from("bookings")
         .select(`
           *,
-          hall:halls(name),
-          catering_package:catering_packages(name),
-          decoration_package:decoration_packages(name)
+          hall:halls(name, price_per_hour),
+          catering_package:catering_packages(name, price_per_person, pricing_type, flat_price),
+          decoration_package:decoration_packages(name, price, style)
         `)
         .order("event_date", { ascending: true });
       if (error) throw error;
@@ -267,6 +268,26 @@ const Dashboard = () => {
             <span className={`text-xs px-2 py-1 rounded-full capitalize ${getPaymentStyle(booking.payment_status)}`}>{booking.payment_status}</span>
           </div>
         </div>
+        {(booking.payment_status === "paid" || booking.status === "confirmed" || booking.status === "completed") && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              generateReceiptPDF({
+                booking,
+                hall: booking.hall ?? null,
+                catering: booking.catering_package ?? null,
+                decoration: booking.decoration_package ?? null,
+                userEmail: user?.email ?? undefined,
+                userName: user?.user_metadata?.full_name ?? undefined,
+              });
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Invoice
+          </Button>
+        )}
         {booking.status === "pending" && booking.payment_status === "pending" && (
           <Button
             variant="gold"

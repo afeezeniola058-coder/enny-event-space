@@ -12,7 +12,9 @@ import {
   CalendarDays,
   Users,
   Clock,
+  Download,
 } from "lucide-react";
+import { generateReceiptPDF } from "@/utils/generateReceiptPDF";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -35,11 +37,13 @@ interface BookingSummary {
   discount_amount: number;
   status: string;
   payment_status: string;
+  payment_reference: string | null;
+  created_at: string;
   notes: string | null;
   dietary_preferences: string[] | null;
   halls: { name: string; price_per_hour: number } | null;
   catering_packages: { name: string; price_per_person: number; pricing_type: string | null; flat_price: number | null } | null;
-  decoration_packages: { name: string; price: number } | null;
+  decoration_packages: { name: string; price: number; style: string | null } | null;
 }
 
 const formatPrice = (value: number) =>
@@ -63,10 +67,10 @@ const BookingConfirmation = () => {
       const { data } = await supabase
         .from("bookings")
         .select(
-          `id, event_name, event_date, start_time, end_time, guest_count, total_amount, discount_amount, status, payment_status, notes, dietary_preferences,
+          `id, event_name, event_date, start_time, end_time, guest_count, total_amount, discount_amount, status, payment_status, payment_reference, created_at, notes, dietary_preferences,
            halls ( name, price_per_hour ),
            catering_packages ( name, price_per_person, pricing_type, flat_price ),
-           decoration_packages ( name, price )`
+           decoration_packages ( name, price, style )`
         )
         .eq("id", id)
         .maybeSingle();
@@ -277,9 +281,28 @@ const BookingConfirmation = () => {
                           </span>
                         </div>
                         <Badge variant="secondary">Payment: {booking.payment_status}</Badge>
+                        {booking.payment_reference && (
+                          <p className="text-xs text-muted-foreground font-mono">
+                            Ref: {booking.payment_reference}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap gap-3 pt-2">
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            generateReceiptPDF({
+                              booking,
+                              hall: booking.halls,
+                              catering: booking.catering_packages,
+                              decoration: booking.decoration_packages,
+                            })
+                          }
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download receipt
+                        </Button>
                         <CalendarExportButton
                           title={booking.event_name}
                           description={booking.notes ?? undefined}
