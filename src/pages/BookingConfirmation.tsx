@@ -281,15 +281,12 @@ const BookingConfirmation = () => {
 
                       <div className="flex flex-wrap gap-3 pt-2">
                         <CalendarExportButton
-                          booking={{
-                            id: booking.id,
-                            event_name: booking.event_name,
-                            event_date: booking.event_date,
-                            start_time: booking.start_time,
-                            end_time: booking.end_time,
-                            hall_name: booking.halls?.name ?? null,
-                            notes: booking.notes,
-                          }}
+                          title={booking.event_name}
+                          description={booking.notes ?? undefined}
+                          location={booking.halls?.name ?? undefined}
+                          eventDate={booking.event_date}
+                          startTime={booking.start_time}
+                          endTime={booking.end_time}
                         />
                         <Button asChild variant="outline">
                           <Link to={`/bookings/${booking.id}`}>View booking details</Link>
