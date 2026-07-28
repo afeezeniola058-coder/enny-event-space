@@ -35,11 +35,13 @@ interface BookingSummary {
   discount_amount: number;
   status: string;
   payment_status: string;
+  payment_reference: string | null;
+  created_at: string;
   notes: string | null;
   dietary_preferences: string[] | null;
   halls: { name: string; price_per_hour: number } | null;
   catering_packages: { name: string; price_per_person: number; pricing_type: string | null; flat_price: number | null } | null;
-  decoration_packages: { name: string; price: number } | null;
+  decoration_packages: { name: string; price: number; style: string | null } | null;
 }
 
 const formatPrice = (value: number) =>
