@@ -122,7 +122,7 @@ const BookingConfirmation = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Booking Confirmation | Enny Event"
+        title="Booking Confirmation"
         description="Your event booking confirmation with a full summary of your venue, catering and decoration selections."
       />
       <Navbar />

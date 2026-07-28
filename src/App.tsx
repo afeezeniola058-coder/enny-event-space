@@ -15,6 +15,7 @@ import Budget from "./pages/Budget";
 import Dashboard from "./pages/Dashboard";
 import Book from "./pages/Book";
 import BookingDetails from "./pages/BookingDetails";
+import BookingConfirmation from "./pages/BookingConfirmation";
 import AdminDashboard from "./pages/AdminDashboard";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -70,6 +71,11 @@ const App = () => (
             <Route path="/bookings/:id" element={
               <ProtectedRoute>
                 <BookingDetails />
+              </ProtectedRoute>
+            } />
+            <Route path="/booking-confirmation" element={
+              <ProtectedRoute>
+                <BookingConfirmation />
               </ProtectedRoute>
             } />
             <Route path="/admin" element={
