@@ -268,6 +268,26 @@ const Dashboard = () => {
             <span className={`text-xs px-2 py-1 rounded-full capitalize ${getPaymentStyle(booking.payment_status)}`}>{booking.payment_status}</span>
           </div>
         </div>
+        {(booking.payment_status === "paid" || booking.status === "confirmed" || booking.status === "completed") && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              generateReceiptPDF({
+                booking,
+                hall: booking.hall ?? null,
+                catering: booking.catering_package ?? null,
+                decoration: booking.decoration_package ?? null,
+                userEmail: user?.email ?? undefined,
+                userName: user?.user_metadata?.full_name ?? undefined,
+              });
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Invoice
+          </Button>
+        )}
         {booking.status === "pending" && booking.payment_status === "pending" && (
           <Button
             variant="gold"
