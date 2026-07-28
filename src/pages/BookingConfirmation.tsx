@@ -279,9 +279,28 @@ const BookingConfirmation = () => {
                           </span>
                         </div>
                         <Badge variant="secondary">Payment: {booking.payment_status}</Badge>
+                        {booking.payment_reference && (
+                          <p className="text-xs text-muted-foreground font-mono">
+                            Ref: {booking.payment_reference}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap gap-3 pt-2">
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            generateReceiptPDF({
+                              booking,
+                              hall: booking.halls,
+                              catering: booking.catering_packages,
+                              decoration: booking.decoration_packages,
+                            })
+                          }
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download receipt
+                        </Button>
                         <CalendarExportButton
                           title={booking.event_name}
                           description={booking.notes ?? undefined}
