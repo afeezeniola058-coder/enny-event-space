@@ -152,6 +152,7 @@ serve(async (req) => {
           .update({
             payment_status: 'paid',
             status: 'confirmed',
+            payment_reference: reference,
           })
           .eq('id', bookingId)
           .eq('user_id', user.id); // Double-check ownership in update

@@ -118,7 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Fetch user profile for email
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("email, full_name")
+      .select("email, full_name, phone")
       .eq("user_id", booking.user_id)
       .single();
 
@@ -130,6 +130,10 @@ const handler = async (req: Request): Promise<Response> => {
     const userEmail = profile.email;
     // Escape user-controlled data to prevent XSS in emails
     const userName = escapeHtml(profile.full_name) || "Valued Customer";
+    const userPhone = escapeHtml(profile.phone) || "Not provided";
+    const safeUserEmail = escapeHtml(userEmail);
+    const paymentReference = escapeHtml(booking.payment_reference) || "N/A";
+    const discountAmount = Number(booking.discount_amount || 0);
 
     // Build tracking URLs
     const trackingBaseUrl = `${supabaseUrl}/functions/v1/email-tracking`;
@@ -217,9 +221,33 @@ const handler = async (req: Request): Promise<Response> => {
                   <span class="label">Decoration</span>
                   <span class="value">${decorationName}</span>
                 </div>
+                ${discountAmount > 0 ? `<div class="detail-row">
+                  <span class="label">Discount</span>
+                  <span class="value">-₦${discountAmount.toLocaleString()}</span>
+                </div>` : ""}
                 <div class="detail-row">
-                  <span class="label">Total Amount</span>
+                  <span class="label">Amount Paid</span>
                   <span class="value">₦${Number(booking.total_amount).toLocaleString()}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Payment Reference</span>
+                  <span class="value">${paymentReference}</span>
+                </div>
+              </div>
+
+              <div class="details">
+                <h3 style="margin-top: 0;">Your Contact Details</h3>
+                <div class="detail-row">
+                  <span class="label">Name</span>
+                  <span class="value">${userName}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Email</span>
+                  <span class="value">${safeUserEmail}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Phone</span>
+                  <span class="value">${userPhone}</span>
                 </div>
               </div>
 
