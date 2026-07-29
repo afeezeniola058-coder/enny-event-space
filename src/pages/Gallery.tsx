@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Users, RefreshCw, ChevronLeft, ChevronRight, ImageOff, X } from "lucide-react";
+import { Calendar, MapPin, Users, RefreshCw, ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 import { format } from "date-fns";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
