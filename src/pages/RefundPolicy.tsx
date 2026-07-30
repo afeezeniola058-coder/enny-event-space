@@ -121,9 +121,10 @@ const RefundPolicy = () => {
                 </h3>
               </div>
               <p className="font-body text-sm text-muted-foreground">
-                Approved refunds are processed within 5-7 business days. Refunds will be 
-                credited to the original payment method. Bank processing times may vary 
-                and could take an additional 3-5 business days.
+                All payments are collected securely through Paystack. Approved refunds are
+                initiated within 5-7 business days and returned via Paystack to the original
+                payment method (card, bank transfer or USSD) used at checkout. Your bank may
+                need an additional 3-5 business days to post the funds to your account.
               </p>
             </motion.div>
 

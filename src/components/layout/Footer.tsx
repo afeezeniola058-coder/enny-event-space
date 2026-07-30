@@ -70,9 +70,10 @@ const Footer = () => {
             <h4 className="font-display text-lg font-semibold mb-4">Legal</h4>
             <ul className="space-y-3" role="list">
               {[
-                { name: "Terms & Conditions", path: "/terms" },
+                { name: "Contact & Support", path: "/contact" },
+                { name: "Terms of Service", path: "/terms" },
+                { name: "Cancellation & Refund Policy", path: "/refund-policy" },
                 { name: "Privacy Policy", path: "/privacy" },
-                { name: "Refund Policy", path: "/refund-policy" },
               ].map((item) => (
                 <li key={item.name}>
                   <Link
