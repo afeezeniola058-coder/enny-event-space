@@ -1,39 +1,32 @@
+# Entity Relationship Diagram — Eventify
 
+## What gets produced
+A single ERD covering all 15 database tables, delivered as:
+1. A **Mermaid diagram** rendered inline in chat (downloadable `.mmd`)
+2. A **high-resolution PNG** saved to documents, suitable for pasting into the defense report/slides
 
-# Plan: Generate Defense Presentation (.pptx) for Eventify
+## Entities to include
+- **profiles**, **user_roles** (app_role enum: admin/moderator/user) — identity and access
+- **bookings** — the central table, linking user, hall, catering package, decoration package, promo code
+- **halls**, **catering_packages**, **decoration_packages** — bookable inventory
+- **promo_codes** — discounts applied to bookings
+- **reviews** — tied to a user, a booking, and a hall
+- **waitlist** — user + hall + date when a hall is fully booked
+- **notifications** — per-user in-app alerts
+- **email_reminders**, **email_tracking** — booking-linked email events
+- **blog_posts**, **past_events** — content tables (blog posts link to an author)
 
-## What We're Building
-A professionally designed PowerPoint presentation (downloadable .pptx) for an academic defense of the **Eventify** event management platform — a National Diploma project.
+Each entity lists its columns with types, primary keys, and foreign keys. Relationships are labelled with cardinality (e.g. one hall has many bookings; one booking has zero-or-one catering package).
 
-## Design Philosophy
-**"Warm Precision"** — A rich, dark-toned palette (deep navy + warm gold accent) reflecting the premium event planning brand. Clean layouts with bold stat callouts, system diagrams, and structured content. Professional and academic in tone.
+## Layout
+Central `bookings` entity with inventory tables feeding in from one side, user/identity tables from the other, and communication/content tables grouped separately, so the diagram reads cleanly at report size.
 
-## Slide Structure (approx. 12-14 slides)
+## Technical details
+- Source of truth: the live database schema (tables, columns, enums, foreign keys) — read directly, not guessed
+- Mermaid `erDiagram` syntax for the chat/downloadable version
+- PNG rendered via mermaid CLI at high DPI, saved to `/mnt/documents/`
+- Optionally dropped into `/public/diagrams/` alongside the existing UML diagrams if you want it served by the app
 
-1. **Title Slide** — Project title, student info placeholder, institution, date
-2. **Problem Statement** — Manual event planning challenges in Nigeria
-3. **Objectives** — 4-5 clear project objectives
-4. **Literature Review Summary** — Brief comparison of existing solutions vs Eventify
-5. **System Architecture** — Tech stack diagram (React, Supabase, Paystack, Edge Functions)
-6. **Entity Relationship Diagram** — Key tables: bookings, halls, catering_packages, decoration_packages, profiles, notifications, reviews, user_roles
-7. **Key Features (1)** — Hall booking with real-time availability, catering & decoration packages, budget calculator
-8. **Key Features (2)** — Paystack payment integration, AI package recommender, automated email reminders
-9. **Key Features (3)** — Admin dashboard, user dashboard, notification system, reviews
-10. **Security & Architecture** — RLS policies, role-based access, input validation, CORS
-11. **Testing & Results** — Summary of functional testing outcomes
-12. **Demo Screenshots** — Placeholder for app screenshots
-13. **Challenges & Future Work** — Limitations and recommendations
-14. **Conclusion & Q&A** — Summary and thank you
-
-## Technical Approach
-- Use `pptxgenjs` via Node.js script
-- Dark navy (#1E2761) primary, gold (#D4A843) accent, ice blue (#CADCFC) secondary
-- Embed the 4 UML diagrams from `/public/diagrams/` where relevant
-- Font pairing: Arial Black (headers) + Arial (body)
-- Output to `/mnt/documents/eventify-defense-presentation.pptx`
-- QA via LibreOffice PDF conversion + visual inspection
-
-## Files Produced
-- `/mnt/documents/eventify-defense-philosophy.md` — Design philosophy document
-- `/mnt/documents/eventify-defense-presentation.pptx` — Final presentation
-
+## Not included (say the word to add)
+- RLS policy annotations per table
+- Data-flow or sequence diagrams (the booking/payment flow)
