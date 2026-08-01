@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Users, Clock, Utensils, Palette, Building2, Sparkles, ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon, Users, Clock, Utensils, Palette, Building2, Sparkles, ArrowLeft, AlertTriangle } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
