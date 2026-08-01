@@ -493,6 +493,10 @@ const BookingDetails = () => {
             {/* Payment Timeline */}
             <PaymentTimeline booking={booking} />
 
+            {/* Status History */}
+            <BookingStatusHistory bookingId={booking.id} />
+
+
             {/* Hall Details */}
             {hall && (
               <Card>
