@@ -68,6 +68,50 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_status_history: {
+        Row: {
+          actor: string
+          booking_id: string
+          changed_by: string | null
+          created_at: string
+          field: string
+          id: string
+          new_value: string
+          old_value: string | null
+          reason: string | null
+        }
+        Insert: {
+          actor?: string
+          booking_id: string
+          changed_by?: string | null
+          created_at?: string
+          field: string
+          id?: string
+          new_value: string
+          old_value?: string | null
+          reason?: string | null
+        }
+        Update: {
+          actor?: string
+          booking_id?: string
+          changed_by?: string | null
+          created_at?: string
+          field?: string
+          id?: string
+          new_value?: string
+          old_value?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_status_history_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           catering_package_id: string | null
@@ -696,6 +740,14 @@ export type Database = {
           id: string
           max_discount: number
         }[]
+      }
+      update_booking_status: {
+        Args: {
+          _booking_id: string
+          _reason?: string
+          _status: Database["public"]["Enums"]["booking_status"]
+        }
+        Returns: undefined
       }
     }
     Enums: {
