@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Users, Clock, Utensils, Palette, Building2, Sparkles, ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon, Users, Clock, Utensils, Palette, Building2, Sparkles, ArrowLeft, AlertTriangle } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -327,8 +327,18 @@ const Book = () => {
             <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {/* Form */}
               <div className="lg:col-span-2">
+                <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
+                  <div className="font-body text-sm">
+                    <p className="font-semibold text-foreground">Please note: 14-day payment window</p>
+                    <p className="text-muted-foreground">
+                      Bookings that remain pending and unpaid for 14 days are automatically cancelled and the date is released to other customers. Complete payment to secure your date.
+                    </p>
+                  </div>
+                </div>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
                     {/* Event Details */}
                     <Card>
                       <CardHeader>

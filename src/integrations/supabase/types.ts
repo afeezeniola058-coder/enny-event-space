@@ -664,6 +664,7 @@ export type Database = {
       }
     }
     Functions: {
+      auto_cancel_stale_pending_bookings: { Args: never; Returns: number }
       get_hall_availability: {
         Args: { _hall_id: string }
         Returns: {
