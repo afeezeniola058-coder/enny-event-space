@@ -605,7 +605,17 @@ const BookingsManagement = () => {
               {timelineTarget?.eventName} — Status Timeline
             </DialogTitle>
           </DialogHeader>
-          {timelineTarget && <BookingStatusHistory bookingId={timelineTarget.id} />}
+          {timelineTarget && (
+            <>
+              <TimelineExportButtons
+                bookingId={timelineTarget.id}
+                eventName={timelineTarget.eventName}
+                customerName={timelineTarget.customerName}
+                eventDate={timelineTarget.eventDate}
+              />
+              <BookingStatusHistory bookingId={timelineTarget.id} />
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
