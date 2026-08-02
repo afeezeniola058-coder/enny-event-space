@@ -361,6 +361,27 @@ export type Database = {
           },
         ]
       }
+      hall_availability: {
+        Row: {
+          event_date: string
+          hall_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          event_date: string
+          hall_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          event_date?: string
+          hall_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       halls: {
         Row: {
           amenities: string[] | null
@@ -709,20 +730,6 @@ export type Database = {
     }
     Functions: {
       auto_cancel_stale_pending_bookings: { Args: never; Returns: number }
-      get_hall_availability: {
-        Args: { _hall_id: string }
-        Returns: {
-          event_date: string
-          status: string
-        }[]
-      }
-      get_hall_availability_for_date: {
-        Args: { _event_date: string }
-        Returns: {
-          hall_id: string
-          status: string
-        }[]
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -740,6 +747,10 @@ export type Database = {
           id: string
           max_discount: number
         }[]
+      }
+      sync_hall_availability: {
+        Args: { _event_date: string; _hall_id: string }
+        Returns: undefined
       }
       update_booking_status: {
         Args: {
