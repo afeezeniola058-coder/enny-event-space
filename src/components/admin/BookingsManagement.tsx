@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BookingStatusHistory from '@/components/booking/BookingStatusHistory';
+import TimelineExportButtons from '@/components/booking/TimelineExportButtons';
 import { toast } from 'sonner';
 import { format, differenceInHours } from 'date-fns';
 import { Calendar, Users, DollarSign, Clock, RefreshCw, CheckSquare, XSquare, CheckCircle, ShieldAlert, AlertTriangle, History } from 'lucide-react';
@@ -44,7 +45,7 @@ const BookingsManagement = () => {
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [forceCancelTarget, setForceCancelTarget] = useState<ForceCancel | null>(null);
   const [overrideReason, setOverrideReason] = useState('');
-  const [timelineTarget, setTimelineTarget] = useState<{ id: string; eventName: string } | null>(null);
+  const [timelineTarget, setTimelineTarget] = useState<{ id: string; eventName: string; customerName?: string | null; eventDate?: string | null } | null>(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
@@ -477,7 +478,7 @@ const BookingsManagement = () => {
                               size="sm"
                               variant="ghost"
                               className="w-[130px] text-xs"
-                              onClick={() => setTimelineTarget({ id: booking.id, eventName: booking.event_name })}
+                              onClick={() => setTimelineTarget({ id: booking.id, eventName: booking.event_name, customerName: booking.profile?.full_name || null, eventDate: format(new Date(booking.event_date), 'MMM dd, yyyy') })}
                             >
                               <History className="h-3 w-3 mr-1" />
                               Timeline
@@ -605,7 +606,17 @@ const BookingsManagement = () => {
               {timelineTarget?.eventName} — Status Timeline
             </DialogTitle>
           </DialogHeader>
-          {timelineTarget && <BookingStatusHistory bookingId={timelineTarget.id} />}
+          {timelineTarget && (
+            <>
+              <TimelineExportButtons
+                bookingId={timelineTarget.id}
+                eventName={timelineTarget.eventName}
+                customerName={timelineTarget.customerName}
+                eventDate={timelineTarget.eventDate}
+              />
+              <BookingStatusHistory bookingId={timelineTarget.id} />
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
