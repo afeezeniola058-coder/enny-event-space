@@ -44,6 +44,7 @@ const BookingsManagement = () => {
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [forceCancelTarget, setForceCancelTarget] = useState<ForceCancel | null>(null);
   const [overrideReason, setOverrideReason] = useState('');
+  const [timelineTarget, setTimelineTarget] = useState<{ id: string; eventName: string } | null>(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
