@@ -595,6 +595,19 @@ const BookingsManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Booking Timeline Dialog */}
+      <Dialog open={!!timelineTarget} onOpenChange={(open) => { if (!open) setTimelineTarget(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-primary" />
+              {timelineTarget?.eventName} — Status Timeline
+            </DialogTitle>
+          </DialogHeader>
+          {timelineTarget && <BookingStatusHistory bookingId={timelineTarget.id} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
