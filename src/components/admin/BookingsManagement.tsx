@@ -18,9 +18,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import BookingStatusHistory from '@/components/booking/BookingStatusHistory';
 import { toast } from 'sonner';
 import { format, differenceInHours } from 'date-fns';
-import { Calendar, Users, DollarSign, Clock, RefreshCw, CheckSquare, XSquare, CheckCircle, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { Calendar, Users, DollarSign, Clock, RefreshCw, CheckSquare, XSquare, CheckCircle, ShieldAlert, AlertTriangle, History } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
