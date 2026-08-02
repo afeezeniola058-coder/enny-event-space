@@ -36,9 +36,10 @@ const Halls = () => {
     queryKey: ["hall-availability-by-date", dateKey],
     enabled: !!dateKey,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_hall_availability_for_date", {
-        _event_date: dateKey as string,
-      });
+      const { data, error } = await supabase
+        .from("hall_availability")
+        .select("hall_id, status")
+        .eq("event_date", dateKey as string);
       if (error) throw error;
       const map: Record<string, string> = {};
       (data ?? []).forEach((row: { hall_id: string; status: string }) => {
