@@ -18,9 +18,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import BookingStatusHistory from '@/components/booking/BookingStatusHistory';
 import { toast } from 'sonner';
 import { format, differenceInHours } from 'date-fns';
-import { Calendar, Users, DollarSign, Clock, RefreshCw, CheckSquare, XSquare, CheckCircle, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { Calendar, Users, DollarSign, Clock, RefreshCw, CheckSquare, XSquare, CheckCircle, ShieldAlert, AlertTriangle, History } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type BookingStatus = Database['public']['Enums']['booking_status'];
@@ -42,6 +44,7 @@ const BookingsManagement = () => {
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [forceCancelTarget, setForceCancelTarget] = useState<ForceCancel | null>(null);
   const [overrideReason, setOverrideReason] = useState('');
+  const [timelineTarget, setTimelineTarget] = useState<{ id: string; eventName: string } | null>(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
@@ -470,6 +473,15 @@ const BookingsManagement = () => {
                                 Force Cancel
                               </Button>
                             )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="w-[130px] text-xs"
+                              onClick={() => setTimelineTarget({ id: booking.id, eventName: booking.event_name })}
+                            >
+                              <History className="h-3 w-3 mr-1" />
+                              Timeline
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -583,6 +595,19 @@ const BookingsManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Booking Timeline Dialog */}
+      <Dialog open={!!timelineTarget} onOpenChange={(open) => { if (!open) setTimelineTarget(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-primary" />
+              {timelineTarget?.eventName} — Status Timeline
+            </DialogTitle>
+          </DialogHeader>
+          {timelineTarget && <BookingStatusHistory bookingId={timelineTarget.id} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
