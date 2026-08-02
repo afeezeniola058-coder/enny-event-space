@@ -473,6 +473,15 @@ const BookingsManagement = () => {
                                 Force Cancel
                               </Button>
                             )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="w-[130px] text-xs"
+                              onClick={() => setTimelineTarget({ id: booking.id, eventName: booking.event_name })}
+                            >
+                              <History className="h-3 w-3 mr-1" />
+                              Timeline
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
