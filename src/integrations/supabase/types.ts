@@ -571,6 +571,75 @@ export type Database = {
         }
         Relationships: []
       }
+      reschedule_requests: {
+        Row: {
+          admin_note: string | null
+          booking_id: string
+          created_at: string
+          current_date_snapshot: string
+          id: string
+          reason: string | null
+          requested_date: string
+          requested_end_time: string
+          requested_hall_id: string | null
+          requested_start_time: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["reschedule_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          booking_id: string
+          created_at?: string
+          current_date_snapshot: string
+          id?: string
+          reason?: string | null
+          requested_date: string
+          requested_end_time: string
+          requested_hall_id?: string | null
+          requested_start_time: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["reschedule_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          booking_id?: string
+          created_at?: string
+          current_date_snapshot?: string
+          id?: string
+          reason?: string | null
+          requested_date?: string
+          requested_end_time?: string
+          requested_hall_id?: string | null
+          requested_start_time?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["reschedule_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reschedule_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_requested_hall_id_fkey"
+            columns: ["requested_hall_id"]
+            isOneToOne: false
+            referencedRelation: "halls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           booking_id: string | null
@@ -730,6 +799,10 @@ export type Database = {
     }
     Functions: {
       auto_cancel_stale_pending_bookings: { Args: never; Returns: number }
+      cancel_reschedule_request: {
+        Args: { _request_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -747,6 +820,21 @@ export type Database = {
           id: string
           max_discount: number
         }[]
+      }
+      request_booking_reschedule: {
+        Args: {
+          _booking_id: string
+          _reason?: string
+          _requested_date: string
+          _requested_end_time: string
+          _requested_hall_id: string
+          _requested_start_time: string
+        }
+        Returns: string
+      }
+      review_reschedule_request: {
+        Args: { _admin_note?: string; _approve: boolean; _request_id: string }
+        Returns: undefined
       }
       sync_hall_availability: {
         Args: { _event_date: string; _hall_id: string }
@@ -766,6 +854,7 @@ export type Database = {
       booking_status: "pending" | "confirmed" | "cancelled" | "completed"
       discount_type: "percentage" | "fixed"
       payment_status: "pending" | "paid" | "failed" | "refunded"
+      reschedule_status: "pending" | "approved" | "rejected" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -897,6 +986,7 @@ export const Constants = {
       booking_status: ["pending", "confirmed", "cancelled", "completed"],
       discount_type: ["percentage", "fixed"],
       payment_status: ["pending", "paid", "failed", "refunded"],
+      reschedule_status: ["pending", "approved", "rejected", "cancelled"],
     },
   },
 } as const

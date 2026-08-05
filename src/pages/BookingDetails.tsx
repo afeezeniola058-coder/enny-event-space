@@ -35,6 +35,7 @@ import RefundTierDisplay from "@/components/booking/RefundTierDisplay";
 import CalendarExportButton from "@/components/booking/CalendarExportButton";
 import PaymentTimeline from "@/components/booking/PaymentTimeline";
 import BookingStatusHistory from "@/components/booking/BookingStatusHistory";
+import { RescheduleRequestStatus } from "@/components/booking/RescheduleRequestStatus";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -495,6 +496,7 @@ const BookingDetails = () => {
             <PaymentTimeline booking={booking} />
 
             {/* Status History */}
+            <RescheduleRequestStatus bookingId={booking.id} />
             <BookingStatusHistory bookingId={booking.id} />
 
 
@@ -790,6 +792,7 @@ const BookingDetails = () => {
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["booking", id] });
           queryClient.invalidateQueries({ queryKey: ["bookings"] });
+          queryClient.invalidateQueries({ queryKey: ["reschedule-requests", booking.id] });
         }}
       />
 
